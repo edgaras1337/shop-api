@@ -26,12 +26,17 @@ namespace api.Controllers
         [Authorize]
         public async Task<ActionResult<UpdateUserResponse>> UpdateUser([FromForm] UpdateUserRequest request)
         {
-            UpdateUserResponse response;
             try
             {
-                response = await _userService.UpdateCurrentUserAsync(request);
+                var response = await _userService.UpdateCurrentUserAsync(request);
+
+                return Ok(response);
             }
-            catch (UnauthorizedAccessException)
+            catch (ObjectNotFoundException)
+            {
+                return NotFound();
+            }
+            catch (UnauthorizedException)
             {
                 return Unauthorized();
             }
@@ -43,11 +48,9 @@ namespace api.Controllers
             {
                 return BadRequest();
             }
-
-            return Ok(response);
         }
 
-        [HttpGet]
+        [HttpGet("all")]
         [Authorize(Roles = "Administrator")]
         public async Task<ActionResult<List<GetAllUsersResponse>>> GetAllUsers()
         {
@@ -58,9 +61,10 @@ namespace api.Controllers
 
         [HttpGet("{id}")]
         [Authorize(Roles = "Administrator")]
-        public async Task<ActionResult<GetUserByIdResponse>> GetUserById(int id)
+        public async Task<ActionResult<GetUserByIdResponse>> GetUserById(string id)
         {
             var user = await _userService.GetByIdAsync(id);
+
             if(user is null)
             {
                 return NotFound();
@@ -69,13 +73,13 @@ namespace api.Controllers
             return Ok(user);
         }
 
-        [HttpGet("find")]
+        [HttpGet("find/{searchKey}")]
         [Authorize(Roles = "Administrator")]
-        public async Task<ActionResult<FindUserResponse>> FindUser(FindUserRequest request)
+        public async Task<ActionResult<FindUserResponse>> FindUser(string searchKey)
         {
-            var users = await _userService.FindUserAsync(request);
+            var users = await _userService.FindUserAsync(searchKey);
 
-            if(users is null)
+            if(users is null || users.Count == 0)
             {
                 return NotFound();
             }
@@ -87,13 +91,9 @@ namespace api.Controllers
         [Authorize]
         public async Task<ActionResult> Delete()
         {
-            try
+            if (!await _userService.DeactivateAccountAsync())
             {
-                await _userService.DeactivateAccountAsync();
-            }
-            catch (UnauthorizedAccessException)
-            {
-                return Unauthorized();
+                return NotFound();
             }
 
             return NoContent();
@@ -101,9 +101,9 @@ namespace api.Controllers
 
         [HttpDelete("delete/{id}")]
         [Authorize(Roles = "Administrator")]
-        public async Task<ActionResult> DeleteUser(int id)
+        public async Task<ActionResult> DeleteUser(string id)
         {
-            if(!(await _userService.DeleteUserByIdAsync(id)))
+            if(!await _userService.DeleteUserByIdAsync(id))
             {
                 return NotFound();
             }

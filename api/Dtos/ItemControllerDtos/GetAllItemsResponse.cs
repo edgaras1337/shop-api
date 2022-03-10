@@ -27,38 +27,36 @@ namespace api.Dtos.ItemControllerDtos
     {
         public int Id { get; set; }
         public string ImageName { get; set; } = string.Empty;
-        public string ImageSrc { get; set; } = string.Empty;
+        public string ImageSource { get; set; } = string.Empty;
     }
 
     public class GetAllItemResponse_CommentDto
     {
         public int Id { get; set; }
         public string CommentText { get; set; } = string.Empty;
-        public int UserId { get; set; }
         public DateTimeOffset ModifiedDate { get; set; }
         public GetAllItemResponse_UserDto? User { get; set; }
     }
 
     public class GetAllItemResponse_UserDto
     {
-        public int Id { get; set; }
+        public string Id { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
         public string Surname { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
-        public string ImageSrc = string.Empty;
+        public string ImageSource { get; set; } = string.Empty;
         public List<GetAllItemResponse_UserRoleDto> UserRoles { get; set; } = new();
     }
 
     public class GetAllItemResponse_UserRoleDto
     {
-        public int Id { get; set; }
         public GetAllItemResponse_RoleDto? Role { get; set; }
     }
 
     public class GetAllItemResponse_RoleDto
     {
-        public int Id { get; set; }
-        public string RoleName { get; set; } = string.Empty;
+        public string Id { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
     }
 
     public class GetAllItemsResponseProfiles : Profile
@@ -69,9 +67,9 @@ namespace api.Dtos.ItemControllerDtos
             CreateMap<Category, GetAllItemsResponse_CategoryDto>();
             CreateMap<ItemImage, GetAllItemsResponse_ItemImageDto>();
             CreateMap<Comment, GetAllItemResponse_CommentDto>();
-            CreateMap<User, GetAllItemResponse_UserDto>();
-            CreateMap<UserRole, GetAllItemResponse_UserRoleDto>();
-            CreateMap<Role, GetAllItemResponse_RoleDto>();
+            CreateMap<ApplicationUser, GetAllItemResponse_UserDto>();
+            CreateMap<ApplicationUserRole, GetAllItemResponse_UserRoleDto>();
+            CreateMap<ApplicationRole, GetAllItemResponse_RoleDto>();
         }
     }
 }

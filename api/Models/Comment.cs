@@ -11,11 +11,11 @@ namespace api.Models
         [ForeignKey("ItemId")]
         public int ItemId { get; set; }
         [ForeignKey("UserId")]
-        public int UserId { get; set; }
+        public string UserId { get; set; } = string.Empty;
         public DateTimeOffset CreatedDate { get; set; }
         public DateTimeOffset ModifiedDate { get; set; }
 
-        public User? User { get; set; }
-        public Item? Item { get; set; }
+        public virtual ApplicationUser? User { get; set; }
+        public virtual Item? Item { get; set; }
     }
 }

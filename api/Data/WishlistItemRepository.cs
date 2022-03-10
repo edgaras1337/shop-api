@@ -5,9 +5,9 @@ namespace api.Data
 {
     public class WishlistItemRepository : IWishlistItemRepository
     {
-        private readonly DataContext _context;
+        private readonly ApplicationDbContext _context;
 
-        public WishlistItemRepository(DataContext context)
+        public WishlistItemRepository(ApplicationDbContext context)
         {
             _context = context;
         }
@@ -30,7 +30,7 @@ namespace api.Data
                 .SingleOrDefaultAsync(e => e.Id == id);
         }
 
-        public async Task<WishlistItem?> GetCartItemByUserAndItemIdAsync(int userId, int itemId)
+        public async Task<WishlistItem?> GetCartItemByUserAndItemIdAsync(string userId, int itemId)
         {
             return await _context.WishlistItems
                 .Include(e => e.Item)
@@ -40,7 +40,7 @@ namespace api.Data
                 .SingleOrDefaultAsync(e => e.ItemId == itemId && e.UserId == userId);
         }
 
-        public async Task<List<WishlistItem>?> GetWishlistByUserId(int userId)
+        public async Task<List<WishlistItem>?> GetWishlistByUserId(string userId)
         {
             return await _context.WishlistItems
                  .Include(e => e.Item)

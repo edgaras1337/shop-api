@@ -28,24 +28,31 @@ namespace api.Controllers
         [HttpPost("register")]
         public async Task<ActionResult<RegisterResponse>> Register(RegisterRequest dto)
         {
-            RegisterResponse response;
             try
             {
                 // create user account and return response dto
-                response = await _userService.CreateUserAsync(dto);
+                var response = await _userService.CreateUserAsync(dto);
+
+                return CreatedAtAction(nameof(Register), response);
             }
-            catch (DuplicateNameException)
+            catch (DuplicateDataException)
             {
                 // email was already in use
                 return Conflict();
+            }
+            catch (InvalidPasswordException)
+            {
+                return BadRequest();
+            }
+            catch (UserRegistrationException)
+            {
+                return BadRequest();
             }
             catch (ObjectNotFoundException)
             {
                 // role wasnt found
                 return NotFound();
             }
-
-            return CreatedAtAction(nameof(Register), response);
         }
 
         [HttpPost("login")]
@@ -74,6 +81,11 @@ namespace api.Controllers
         public async Task<ActionResult<GetCurrentUserResponse>> GetCurrentUser()
         { 
             var user = await _userService.GetCurrentUserAsync();
+
+            if (user == null)
+            {
+                return Unauthorized();
+            }
 
             return Ok(user);
         }

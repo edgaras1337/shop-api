@@ -5,34 +5,33 @@ namespace api.Dtos.UserControllerDtos
 {
     public class GetUserByIdResponse
     {
-        public int Id { get; set; }
+        public string Id { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
         public string Surname { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
         public DateTime DateOfBirth { get; set; }
-        public string ImageSrc { get; set; } = string.Empty;
-        public List<GUBIR_UserRoleDto> UserRoles { get; set; } = new();
+        public string ImageSource { get; set; } = string.Empty;
+        public List<GetUserByIdResponse_UserRoleDto> UserRoles { get; set; } = new();
     }
 
-    public class GUBIR_UserRoleDto
+    public class GetUserByIdResponse_UserRoleDto
     {
-        public int Id { get; set; }
-        public GUBIR_RoleDto? Role { get; set; }
+        public GetUserByIdResponse_RoleDto? Role { get; set; }
     }
 
-    public class GUBIR_RoleDto
+    public class GetUserByIdResponse_RoleDto
     {
-        public int Id { get; set; }
-        public string RoleName { get; set; } = string.Empty;
+        public string Id { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
     }
 
     public class GetUserByIdResponseProfiles : Profile
     {
         public GetUserByIdResponseProfiles()
         {
-            CreateMap<User, GetUserByIdResponse>();
-            CreateMap<UserRole, GUBIR_UserRoleDto>();
-            CreateMap<Role, GUBIR_RoleDto>();
+            CreateMap<ApplicationUser, GetUserByIdResponse>();
+            CreateMap<ApplicationUserRole, GetUserByIdResponse_UserRoleDto>();
+            CreateMap<ApplicationRole, GetUserByIdResponse_RoleDto>();
         }
     }
 }

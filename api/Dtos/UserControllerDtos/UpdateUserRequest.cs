@@ -11,7 +11,7 @@ namespace api.UserControllerDtos
         public string? Name { get; set; }
         [MinLength(3)]
         public string? Surname { get; set; }
-        [MinLength(5)]
+        [EmailAddress]
         public string? Email { get; set; }
         public string? OldPassword { get; set; }
         [MinLength(3)]
@@ -25,7 +25,7 @@ namespace api.UserControllerDtos
     {
         public UpdateUserRequestProfiles()
         {
-            CreateMap<UpdateUserRequest, User>()
+            CreateMap<UpdateUserRequest, ApplicationUser>()
                 .ForAllMembers(opts =>
                     opts.Condition((src, dest, srcMember) => srcMember != null));
         }

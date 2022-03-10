@@ -24,36 +24,33 @@ namespace api.Controllers
         [Authorize(Roles = "Administrator")]
         public async Task<ActionResult<CreateCategoryResponse>> Create(CreateCategoryRequest request)
         {
-            var category = await _categoryService.CreateAsync(request);
+            try
+            {
+                var category = await _categoryService.CreateAsync(request);
 
-            if(category is null)
+                return CreatedAtAction(nameof(Create), category);
+            }
+            catch (ObjectNotFoundException)
+            {
+                return NotFound();
+            }
+            catch (DuplicateDataException)
             {
                 return Conflict();
             }
-
-            return CreatedAtAction(nameof(Create), category);
         }
 
-        [HttpGet("search")]
-        public async Task<ActionResult<SearchCategoryWithItemsResponse>> FindItem(SearchCategoryWithItemsRequest dto)
+        [HttpGet("search/{searchKey}")]
+        public async Task<ActionResult<SearchCategoryWithItemsResponse>> FindItem(string searchKey)
         {
-            var items = await _categoryService.FindCategoryAsync(dto);
+            var categories = await _categoryService.FindCategoryAsync(searchKey);
 
-            return Ok(items);
-        }
-
-        [HttpGet("{id}/items")]
-        public async Task<ActionResult<GetCategoryWithItemsResponse>> GetCategoryWithItemsById(int id)
-        {
-            // get category dto, which contains category items
-            var category = await _categoryService.GetCategoryWithItemsByIdAsync(id);
-
-            if(category is null)
+            if (categories is null || categories.Count == 0)
             {
                 return NotFound();
             }
 
-            return Ok(category);
+            return Ok(categories);
         }
 
         [HttpGet("{id}")]
@@ -70,32 +67,58 @@ namespace api.Controllers
             return Ok(category);
         }
 
-        [HttpGet]
+        [HttpGet("{id}/items")]
+        public async Task<ActionResult<GetCategoryWithItemsResponse>> GetCategoryWithItemsById(int id)
+        {
+            // get category dto, which contains category items
+            var category = await _categoryService.GetCategoryWithItemsByIdAsync(id);
+
+            if(category is null)
+            {
+                return NotFound();
+            }
+
+            return Ok(category);
+        }
+
+        [HttpGet("all")]
         public async Task<ActionResult<List<GetAllCategoriesResponse>>> GetAll()
         {
             // get category list dto, which contains category items
             var categories = await _categoryService.GetAllCategoriesAsync();
 
+            if (categories is null || categories.Count == 0)
+            {
+                return NotFound();
+            }
+
             return Ok(categories);
         }
 
-        [HttpGet("items")]
+        [HttpGet("all/items")]
         public async Task<ActionResult<List<GetAllCategoriesWithItemsResponse>>> GetAllWithItems()
         {
             // get category list dto, which contains category items
             var categories = await _categoryService.GetAllCategoriesWithItemsAsync();
+
+            if (categories is null || categories.Count == 0)
+            {
+                return NotFound();
+            }
 
             return Ok(categories);
         }
 
         [HttpPut("update")]
         [Authorize(Roles = "Administrator")]
-        public async Task<ActionResult<UpdateCategoryResponse>> UpdateCategory([FromForm] UpdateCategoryRequest request)
+        public async Task<ActionResult<UpdateCategoryResponse>> UpdateCategory(
+            [FromForm] UpdateCategoryRequest request)
         {
-            UpdateCategoryResponse? response;
             try
             {
-                response = await _categoryService.UpdateAsync(request);
+                var response = await _categoryService.UpdateAsync(request);
+
+                return Ok(response);
             }
             catch (ObjectNotFoundException)
             {
@@ -105,8 +128,6 @@ namespace api.Controllers
             {
                 return Conflict();
             }
-
-            return Ok(response);
         }
 
         [HttpDelete("{id}")]

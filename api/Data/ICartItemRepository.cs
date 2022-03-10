@@ -6,8 +6,8 @@ namespace api.Data
     {
         Task<CartItem> AddAsync(CartItem cartItem);
         Task<CartItem?> GetCartItemByIdAsync(int id);
-        Task<CartItem?> GetCartItemByCartAndItemIdAsync(int cartId, int itemId);
-        Task<List<CartItem>?> GetCartItemsByCartIdAsync(int cartId);
+        Task<CartItem?> GetCartItemByCartAndItemIdAsync(string cartId, int itemId);
+        Task<List<CartItem>?> GetCartItemsByCartIdAsync(string cartId);
         Task SaveChangesAsync();
         Task DeleteAsync(CartItem cartItem);
         Task DeleteRangeAsync(List<CartItem> cartItems);

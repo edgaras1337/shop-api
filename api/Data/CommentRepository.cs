@@ -5,9 +5,9 @@ namespace api.Data
 {
     public class CommentRepository : ICommentRepository
     {
-        private readonly DataContext _context;
+        private readonly ApplicationDbContext _context;
 
-        public CommentRepository(DataContext context)
+        public CommentRepository(ApplicationDbContext context)
         {
             _context = context;
         }
@@ -41,7 +41,7 @@ namespace api.Data
                 .ToListAsync();
         }
 
-        public async Task<List<Comment>> GetCommentsByUserIdAsync(int userId)
+        public async Task<List<Comment>> GetCommentsByUserIdAsync(string userId)
         {
             return await _context.Comments
                 .Include(e => e.Item)

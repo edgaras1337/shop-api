@@ -1,9 +1,12 @@
 ﻿using api.CustomExceptions;
 using api.Data;
+using api.Dtos.AuthControllerDtos;
 using api.Dtos.CommentControllerDtos;
 using api.Helpers;
 using api.Models;
 using AutoMapper;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace api.Services
@@ -11,7 +14,8 @@ namespace api.Services
     public class CommentService : ICommentService
     {
         private readonly ICommentRepository _commentRepository;
-        private readonly IUserRepository _userRepository;
+        private readonly UserManager<ApplicationUser> _userManager;
+        //private readonly IUserService _userService;
         private readonly IItemRepository _itemRepository;
         private readonly IImageService _imageService;
         private readonly IMapper _mapper;
@@ -19,14 +23,16 @@ namespace api.Services
 
         public CommentService(
             ICommentRepository commentRepository,
-            IUserRepository userRepository,
+            UserManager<ApplicationUser> userManager,
+            //IUserService userService,
             IItemRepository itemRepository,
             IImageService imageService,
             IMapper mapper,
             IHttpContextAccessor httpContextAccessor)
         {
             _commentRepository = commentRepository;
-            _userRepository = userRepository;
+            _userManager = userManager;
+            //_userService = userService;
             _itemRepository = itemRepository;
             _imageService = imageService;
             _mapper = mapper;
@@ -36,6 +42,8 @@ namespace api.Services
         public async Task<AddCommentResponse> AddCommentAsync(AddCommentRequest dto)
         {
             // get user, item, and its comments
+            //var user = await AuthorizeUserAsync();
+
             var user = await AuthorizeUserAsync();
             var item = await GetItemAsync(dto.ItemId);
 
@@ -43,118 +51,110 @@ namespace api.Services
             var comment = _mapper.Map<Comment>(dto);
 
             comment.UserId = user.Id;
-            comment.CreatedDate = DateTimeOffset.Now;
+            comment.CreatedDate = DateTimeOffset.UtcNow;
             comment.ModifiedDate = comment.CreatedDate;
 
             // add comment to item comments and save changes
             item.Comments.Add(comment);
             await _itemRepository.SaveChangesAsync();
 
-            item.Comments.ForEach(async comment =>
+            item = await item.WithImagesAsync(_imageService);
+
+            var resDto = _mapper.Map<AddCommentResponse>(item);
+
+            return resDto;
+
+            /*item.Comments.ForEach(async comment =>
             {
                 // append images
                 comment.User!.ImageSrc = await _imageService.GetImageSourceAsync(comment.User.ImageName);
                 comment.Item!.Images.ForEach(async image =>
-                    image.ImageSrc = await _imageService.GetImageSourceAsync(image.ImageName));
-            });
+                    image.ImageSource = await _imageService.GetImageSourceAsync(image.ImageName));
+            });*/
 
-            return _mapper.Map<AddCommentResponse>(item);
+
         }
 
         public async Task<UpdateCommentResponse> UpdateCommentAsync(UpdateCommentRequest dto)
         {
             var user = await AuthorizeUserAsync();
-
             var comment = await _commentRepository.GetByIdAsync(dto.Id);
+
             if (comment is null)
             {
                 throw new ObjectNotFoundException();
             }
 
-            bool isValid = false;
-            /*user.UserRoles.ForEach(userRole =>
+            if (user.Id == comment.UserId || await _userManager.IsInRoleAsync(user, "Administrator"))
             {
-                if (userRole.Role!.RoleName == "Administrator")
-                {
-                    isValid = true;
-                }
-            });*/
-            if (user.Id == comment.UserId)
-            {
-                isValid = true;
+                _mapper.Map(dto, comment);
+
+                comment.ModifiedDate = DateTimeOffset.UtcNow;
+
+                await _commentRepository.SaveChangesAsync();
+
+                var item = await GetItemAsync(comment.ItemId);
+
+                item = await item.WithImagesAsync(_imageService);
+
+                var resDto = _mapper.Map<UpdateCommentResponse>(item);
+
+                return resDto;
             }
 
-            if (!isValid)
-            {
-                throw new UnauthorizedAccessException();
-            }
-
-            _mapper.Map(dto, comment);
-            await _commentRepository.SaveChangesAsync();
-
-            var item = await GetItemAsync(comment.ItemId);
-
-            item.Comments.ForEach(async comment =>
-            {
-                // append images
-                comment.User!.ImageSrc = await _imageService.GetImageSourceAsync(comment.User.ImageName);
-                comment.Item!.Images.ForEach(async image =>
-                    image.ImageSrc = await _imageService.GetImageSourceAsync(image.ImageName));
-            });
-
-            return _mapper.Map<UpdateCommentResponse>(item);
+            throw new UnauthorizedException();
         }
 
         public async Task<RemoveCommentResponse> RemoveCommentByIdAsync(int commentId)
         {
             var user = await AuthorizeUserAsync();
-
             var comment = await _commentRepository.GetByIdAsync(commentId);
+
             if (comment is null)
             {
                 throw new ObjectNotFoundException();
             }
 
-            bool isValid = false;
-            user.UserRoles.ForEach(userRole =>
+            if (user.Id == comment.UserId || await _userManager.IsInRoleAsync(user, "Administrator"))
             {
-                if (userRole.Role!.RoleName == "Administrator")
-                {
-                    isValid = true;
-                }
-            });
-            if (user.Id == comment.UserId)
-            {
-                isValid = true;
+                var item = await GetItemAsync(comment.ItemId);
+
+                item.Comments.Remove(comment);
+                await _itemRepository.SaveChangesAsync();
+
+
+                item = await item.WithImagesAsync(_imageService);
+
+                var resDto = _mapper.Map<RemoveCommentResponse>(item);
+
+                return resDto;
             }
 
-            if (!isValid)
-            {
-                throw new UnauthorizedAccessException();
-            }
-
-            var item = await GetItemAsync(comment.ItemId);
-
-            item.Comments.Remove(comment);
-            await _itemRepository.SaveChangesAsync();
-
-
-            item.Comments.ForEach(async comment =>
-            {
-                // append images
-                comment.User!.ImageSrc = await _imageService.GetImageSourceAsync(comment.User.ImageName);
-                comment.Item!.Images.ForEach(async image =>
-                    image.ImageSrc = await _imageService.GetImageSourceAsync(image.ImageName));
-            });
-
-            return _mapper.Map<RemoveCommentResponse>(item);
+            throw new UnauthorizedException();
         }
 
 
         // helpers
-        private async Task<User> AuthorizeUserAsync()
+        private async Task<ApplicationUser> AuthorizeUserAsync()
         {
-            var id = _httpContextAccessor.HttpContext?
+            var name = _httpContextAccessor?.HttpContext?.User?.Identity?.Name;
+
+            if (name is null)
+            {
+                throw new UnauthorizedException();
+            }
+
+            var user = await _userManager.Users
+                .SingleOrDefaultAsync(e => e.UserName == name);
+
+            if (user is null)
+            {
+                throw new UnauthorizedException();
+            }
+
+            return user;
+
+            /*var id = _httpContextAccessor.HttpContext?
                 .User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (id == null)
             {
@@ -165,7 +165,7 @@ namespace api.Services
             {
                 throw new UnauthorizedAccessException();
             }
-            return user;
+            return user;*/
         }
 
         private async Task<Item> GetItemAsync(int itemId)

@@ -4,6 +4,8 @@ using api.Dtos.WishlistControllerDtos;
 using api.Helpers;
 using api.Models;
 using AutoMapper;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace api.Services
@@ -12,7 +14,8 @@ namespace api.Services
     {
         private readonly IWishlistItemRepository _wishlistItemRepository;
         private readonly IItemRepository _itemRepository;
-        private readonly IUserRepository _userRepository;
+        //private readonly IUserRepository _userRepository;
+        private readonly UserManager<ApplicationUser> _userManager;
         private readonly IImageService _imageService;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IMapper _mapper;
@@ -20,14 +23,16 @@ namespace api.Services
         public WishlistItemService(
             IWishlistItemRepository wishlistItemRepository,
             IItemRepository itemRepository,
-            IUserRepository userRepository,
+            //IUserRepository userRepository,
+            UserManager<ApplicationUser> userManager,
             IImageService imageService,
             IHttpContextAccessor httpContextAccessor,
             IMapper mapper)
         {
             _wishlistItemRepository = wishlistItemRepository;
             _itemRepository = itemRepository;
-            _userRepository = userRepository;
+            _userManager = userManager;
+            //_userRepository = userRepository;
             _imageService = imageService;
             _httpContextAccessor = httpContextAccessor;
             _mapper = mapper;
@@ -35,17 +40,17 @@ namespace api.Services
 
         public async Task<List<AddWishlistItemResponse>> AddToWishlistAsync(int itemId)
         {
-            var currentUser = await AuthorizeUser();
+            var user = await AuthorizeUserAsync();
             var item = await GetItemAsync(itemId);
 
             // get all wishlist items or create a new list
-            var wishlist = await _wishlistItemRepository.GetWishlistByUserId(currentUser.Id);
+            var wishlist = await _wishlistItemRepository.GetWishlistByUserId(user.Id);
             if(wishlist is null)
             {
                 wishlist = new List<WishlistItem>();
             }
             var existingWishlistItem = await _wishlistItemRepository
-                .GetCartItemByUserAndItemIdAsync(currentUser.Id, item.Id);
+                .GetCartItemByUserAndItemIdAsync(user.Id, item.Id);
 
             if(existingWishlistItem is null)
             {
@@ -53,7 +58,8 @@ namespace api.Services
                 wishlist.Add(await _wishlistItemRepository.AddAsync(new WishlistItem()
                 {
                     ItemId = item.Id,
-                    UserId = currentUser.Id,
+                    UserId = user.Id,
+                    AddedDate = DateTimeOffset.UtcNow,
                 }));
             }
             else
@@ -63,15 +69,32 @@ namespace api.Services
             }
 
             var dto = new List<AddWishlistItemResponse>();
-            return wishlist is null ? dto : await AppendImageSource(wishlist, dto);
+
+            wishlist = await wishlist.WithImages(_imageService);
+
+            foreach (var wishlistItem in wishlist)
+            {
+                var dtoItem = _mapper.Map<AddWishlistItemResponse>(wishlistItem);
+                dto.Add(dtoItem);
+            }
+
+            return dto;
+
+            //return wishlist is null ? dto : await AppendImageSource(wishlist, dto);
         }
 
         public async Task<List<RemoveWishlistItemResponse>> RemoveWishlistItemAsync(int itemId)
         {
-            var currentUser = await AuthorizeUser();
+            var currentUser = await AuthorizeUserAsync();
             var wishlist = await _wishlistItemRepository.GetWishlistByUserId(currentUser.Id);
 
-            var itemToDelete = wishlist?
+            var dto = new List<RemoveWishlistItemResponse>();
+            if (wishlist is null)
+            {
+                return dto;
+            }
+
+            var itemToDelete = wishlist
                 .SingleOrDefault(e => e.ItemId == itemId);
 
             if (itemToDelete is null)
@@ -79,41 +102,64 @@ namespace api.Services
                 throw new ObjectNotFoundException();
             }
             // delete from the list which will be converted to dto
-            wishlist?.Remove(itemToDelete);
+            wishlist.Remove(itemToDelete);
 
             // delete from db
             await _wishlistItemRepository.DeleteAsync(itemToDelete);
 
-            var dto = new List<RemoveWishlistItemResponse>();
-            return wishlist is null ? dto : await AppendImageSource(wishlist, dto);
+            wishlist = await wishlist.WithImages(_imageService);
+
+            foreach (var wishlistItem in wishlist)
+            {
+                var dtoItem = _mapper.Map<RemoveWishlistItemResponse>(wishlistItem);
+                dto.Add(dtoItem);
+            }
+
+            return dto;
         }
 
         public async Task<List<GetCurrentUserWishlistResponse>> GetCurrentUserWishlistAsync()
         {
-            var currentUser = await AuthorizeUser();
+            var currentUser = await AuthorizeUserAsync();
             var wishlist = await _wishlistItemRepository.GetWishlistByUserId(currentUser.Id);
 
             var dto = new List<GetCurrentUserWishlistResponse>();
+            if (wishlist is null)
+            {
+                return dto;
+            }
 
-            return wishlist is null ? dto : await AppendImageSource(wishlist, dto);
+            wishlist = await wishlist.WithImages(_imageService);
+
+            foreach (var wishlistItem in wishlist)
+            {
+                var dtoItem = _mapper.Map<GetCurrentUserWishlistResponse>(wishlistItem);
+                dto.Add(dtoItem);
+            }
+
+            return dto;
         }
 
 
 
         // helpers
-        private async Task<User> AuthorizeUser()
+        private async Task<ApplicationUser> AuthorizeUserAsync()
         {
-            var id = _httpContextAccessor.HttpContext?
-                .User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (id == null)
+            var name = _httpContextAccessor?.HttpContext?.User?.Identity?.Name;
+
+            if (name is null)
             {
-                throw new UnauthorizedAccessException();
+                throw new UnauthorizedException();
             }
-            var user = await _userRepository.GetByIdAsync(int.Parse(id));
-            if (user == null)
+
+            var user = await _userManager.Users
+                .SingleOrDefaultAsync(e => e.UserName == name);
+
+            if (user is null)
             {
-                throw new UnauthorizedAccessException();
+                throw new UnauthorizedException();
             }
+
             return user;
         }
 
@@ -132,7 +178,7 @@ namespace api.Services
             wishlist.ForEach(wishlistItem =>
             {
                 wishlistItem.Item!.Images.ForEach(async image =>
-                    image.ImageSrc = await _imageService.GetImageSourceAsync(image.ImageName));
+                    image.ImageSource = await _imageService.GetImageSourceAsync(image.ImageName));
 
                 dto.Add(_mapper.Map<T>(wishlistItem));
             });

@@ -1,5 +1,6 @@
 ﻿using api.Models;
 using AutoMapper;
+using Newtonsoft.Json;
 
 namespace api.Dtos.CategoryControllerDtos
 {
@@ -12,6 +13,45 @@ namespace api.Dtos.CategoryControllerDtos
         public string ImageSource { get; set; } = string.Empty;
 
         public List<GetAllCategoriesWithItemsResponse_ItemDto> Items { get; set; } = new();
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public GetAllCategoriesWithItemsResponse_ParentDto? Parent { get; set; }
+        public List<GetAllCategoriesWithItemsResponse_ChildrenDto> Children { get; set; } = new();
+
+        public bool ShouldSerializeChildren() =>
+            Children.Count > 0;
+
+        public bool ShouldSerializeItems() =>
+            Children.Count == 0;
+    }
+
+    public class GetAllCategoriesWithItemsResponse_ParentDto
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string ImageName { get; set; } = string.Empty;
+        public string ImageSource { get; set; } = string.Empty;
+        public DateTimeOffset CreatedDate { get; set; }
+
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public GetAllCategoriesWithItemsResponse_ParentDto? Parent { get; set; }
+    }
+
+    public class GetAllCategoriesWithItemsResponse_ChildrenDto
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string ImageName { get; set; } = string.Empty;
+        public string ImageSource { get; set; } = string.Empty;
+
+        public List<GetAllCategoriesWithItemsResponse_ItemDto> Items { get; set; } = new();
+        public List<GetAllCategoriesWithItemsResponse_ChildrenDto> Children { get; set; } = new();
+
+        public bool ShouldSerializeItems() =>
+            Children.Count == 0;
+
+        public bool ShouldSerializeChildren() =>
+            Children.Count > 0;
     }
 
     public class GetAllCategoriesWithItemsResponse_ItemDto
@@ -33,38 +73,36 @@ namespace api.Dtos.CategoryControllerDtos
     {
         public int Id { get; set; }
         public string ImageName { get; set; } = string.Empty;
-        public string ImageSrc { get; set; } = string.Empty;
+        public string ImageSource { get; set; } = string.Empty;
     }
 
     public class GetAllCategoriesWithItemsResponse_CommentDto
     {
         public int Id { get; set; }
         public string CommentText { get; set; } = string.Empty;
-        public int UserId { get; set; }
         public DateTimeOffset ModifiedDate { get; set; }
         public GetAllCategoriesWithItemsResponse_UserDto? User { get; set; }
     }
 
     public class GetAllCategoriesWithItemsResponse_UserDto
     {
-        public int Id { get; set; }
+        public string Id { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
         public string Surname { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
-        public string ImageSrc { get; set; } = string.Empty;
+        public string ImageSource { get; set; } = string.Empty;
         public List<GetAllCategoriesWithItemsResponse_UserRoleDto> UserRoles { get; set; } = new();
     }
 
     public class GetAllCategoriesWithItemsResponse_UserRoleDto
     {
-        public int Id { get; set; }
         public GetAllCategoriesWithItemsResponse_RoleDto? Role { get; set; }
     }
 
     public class GetAllCategoriesWithItemsResponse_RoleDto
     {
-        public int Id { get; set; }
-        public string RoleName { get; set; } = string.Empty;
+        public string Id { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
     }
 
     public class GetAllCategoriesWithItemsResponseProfiles : Profile
@@ -72,12 +110,14 @@ namespace api.Dtos.CategoryControllerDtos
         public GetAllCategoriesWithItemsResponseProfiles()
         {
             CreateMap<Category, GetAllCategoriesWithItemsResponse>();
+            CreateMap<Category, GetAllCategoriesWithItemsResponse_ParentDto>();
+            CreateMap<Category, GetAllCategoriesWithItemsResponse_ChildrenDto>();
             CreateMap<Item, GetAllCategoriesWithItemsResponse_ItemDto>();
             CreateMap<ItemImage, GetAllCategoriesWithItemsResponse_ItemImageDto>();
             CreateMap<Comment, GetAllCategoriesWithItemsResponse_CommentDto>();
-            CreateMap<User, GetAllCategoriesWithItemsResponse_UserDto>();
-            CreateMap<UserRole, GetAllCategoriesWithItemsResponse_UserRoleDto>();
-            CreateMap<Role, GetAllCategoriesWithItemsResponse_RoleDto>();
+            CreateMap<ApplicationUser, GetAllCategoriesWithItemsResponse_UserDto>();
+            CreateMap<ApplicationUserRole, GetAllCategoriesWithItemsResponse_UserRoleDto>();
+            CreateMap<ApplicationRole, GetAllCategoriesWithItemsResponse_RoleDto>();
         }
     }
 }

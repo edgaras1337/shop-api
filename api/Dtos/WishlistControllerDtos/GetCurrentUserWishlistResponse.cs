@@ -8,10 +8,11 @@ namespace api.Dtos.WishlistControllerDtos
     {
         public int Id { get; set; }
         public int UserId { get; set; }
-        public GCUWR_ItemDto? Item { get; set; }
+        public DateTimeOffset AddedDate { get; set; }
+        public GetCurrentUserWishlistResponse_ItemDto? Item { get; set; }
     }
 
-    public class GCUWR_ItemDto
+    public class GetCurrentUserWishlistResponse_ItemDto
     {
         public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
@@ -20,21 +21,21 @@ namespace api.Dtos.WishlistControllerDtos
         public decimal Price { get; set; }
         public DateTimeOffset CreatedDate { get; set; }
         public DateTimeOffset ModifiedDate { get; set; }
-        public GCUWR_CategoryDto? Category { get; set; }
-        public List<GCUWR_ItemImageDto> Images { get; set; } = new List<GCUWR_ItemImageDto>();
+        public GetCurrentUserWishlistResponse_CategoryDto? Category { get; set; }
+        public List<GetCurrentUserWishlistResponse_ItemImageDto> Images { get; set; } = new();
     }
 
-    public class GCUWR_CategoryDto
+    public class GetCurrentUserWishlistResponse_CategoryDto
     {
         public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
     }
 
-    public class GCUWR_ItemImageDto
+    public class GetCurrentUserWishlistResponse_ItemImageDto
     {
         public int Id { get; set; }
         public string ImageName { get; set; } = string.Empty;
-        public string ImageSrc { get; set; } = string.Empty;
+        public string ImageSource { get; set; } = string.Empty;
     }
 
     public class GetCurrentUserWishlistResponseProfiles : Profile
@@ -42,9 +43,9 @@ namespace api.Dtos.WishlistControllerDtos
         public GetCurrentUserWishlistResponseProfiles()
         {
             CreateMap<WishlistItem, GetCurrentUserWishlistResponse>();
-            CreateMap<Item, GCUWR_ItemDto>();
-            CreateMap<Category, GCUWR_CategoryDto>();
-            CreateMap<ItemImage, GCUWR_ItemImageDto>();
+            CreateMap<Item, GetCurrentUserWishlistResponse_ItemDto>();
+            CreateMap<Category, GetCurrentUserWishlistResponse_CategoryDto>();
+            CreateMap<ItemImage, GetCurrentUserWishlistResponse_ItemImageDto>();
         }
     }
 }

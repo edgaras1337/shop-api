@@ -36,12 +36,23 @@ services.AddControllers()
 services.AddEndpointsApiExplorer();
 services.AddSwaggerGen();
 
-services.AddDbContext<DataContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("Default")));//, ServiceLifetime.Transient);
+services.AddDbContext<ApplicationDbContext>(options => options
+    .UseLazyLoadingProxies()
+    .UseSqlServer(builder.Configuration.GetConnectionString("Default")));
 
-services.Configure<JwtConfiguration>(builder.Configuration.GetSection("JwtConfiguration"));
+services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
+{
+    options.Password.RequiredLength = 6;
+    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequireUppercase = false;
+    options.Password.RequiredUniqueChars = 0;
+}).AddEntityFrameworkStores<ApplicationDbContext>()
+    .AddDefaultTokenProviders();
 
-services.AddAuthentication(options =>
+services.AddAuthorization();
+
+//services.Configure<JwtConfiguration>(builder.Configuration.GetSection("JwtConfiguration"));
+services.AddAuthentication();/* (options =>
 {
     options.DefaultAuthenticateScheme = "JwtBearer";
     options.DefaultChallengeScheme = "JwtBearer";
@@ -58,13 +69,13 @@ services.AddAuthentication(options =>
         ValidateLifetime = true,
         ClockSkew = TimeSpan.FromMinutes(2),
     };
-});
+});*/
 
 services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-services.AddScoped<IUserRepository, UserRepository>();
+/*services.AddScoped<IUserRepository, UserRepository>();
 services.AddScoped<IUserRoleRepository, UserRoleRepository>();
 services.AddScoped<IRoleRepository, RoleRepository>();
-services.AddScoped<IJwtService, JwtService>();
+services.AddScoped<IJwtService, JwtService>();*/
 services.AddScoped<IImageService, ImageService>();
 services.AddScoped<IUserService, UserService>();
 services.AddScoped<IItemRepository, ItemRepository>();
@@ -79,6 +90,10 @@ services.AddScoped<IWishlistItemRepository, WishlistItemRepository>();
 services.AddScoped<IWishlistItemService, WishlistItemService>();
 services.AddScoped<ICommentRepository, CommentRepository>();
 services.AddScoped<ICommentService, CommentService>();
+services.AddScoped<IPurchaseService, PurchaseService>();
+services.AddScoped<IPurchaseRepository, PurchaseRepository>();
+
+//services.AddScoped<ApplicationDbContext>();
 
 var app = builder.Build();
 
@@ -89,6 +104,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+
 app.UseCors(options => options
     .WithOrigins(new[] { "http://localhost:3000", "http://localhost:8080", "http://localhost:4200" })
     .AllowAnyHeader()
@@ -96,19 +112,20 @@ app.UseCors(options => options
     .AllowCredentials()
 );
 
+app.UseAuthentication();
+app.UseAuthorization();
 app.UseHttpsRedirection();
 
-var env = builder.Environment;
+// add roles and power user
+SeedData.InitializeRolesAndAdmin(app.Services, app.Configuration)
+    .Wait();
 
+var env = builder.Environment;
 app.UseStaticFiles(new StaticFileOptions
 {
     FileProvider = new PhysicalFileProvider(Path.Combine(env.WebRootPath, "Images")),
     RequestPath = "/Images"
 });
-
-app.UseAuthentication();
-//app.UseRouting();
-app.UseAuthorization();
 
 app.MapControllers();
 

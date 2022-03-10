@@ -5,6 +5,8 @@ using AutoMapper;
 using api.CustomExceptions;
 using System.Security.Claims;
 using api.Helpers;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace api.Services
 {
@@ -12,33 +14,34 @@ namespace api.Services
     {
         private readonly ICartRepository _cartRepository;
         private readonly IItemRepository _itemRepository;
-        private readonly IUserRepository _userRepository;
         private readonly IImageService _imageService;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly UserManager<ApplicationUser> _userManager;
         private readonly IMapper _mapper;
 
         public CartService(
             ICartRepository cartRepository,
             IItemRepository itemRepository,
-            IUserRepository userRepository,
             IImageService imageService,
             IHttpContextAccessor httpContextAccessor,
+            UserManager<ApplicationUser> userManager,
             IMapper mapper)
         {
             _cartRepository = cartRepository;
             _itemRepository = itemRepository;
-            _userRepository = userRepository;
             _imageService = imageService;
             _httpContextAccessor = httpContextAccessor;
+            _userManager = userManager;
             _mapper = mapper;
         }
 
         public async Task<AddToCartResponse> AddToCartAsync(int itemId)
         {
             // authorize user and check if item exists
-            var user = await AuthorizeUser();
+            var user = await AuthorizeUserAsync();
             var item = await GetItemAsync(itemId);
-            var cart = await GetCartAsync(user.Id);
+
+            var cart = user.Cart!;
 
             // check if item already exists in cart
             var cartItem = cart.CartItems
@@ -65,25 +68,23 @@ namespace api.Services
 
             // update price
             cart.TotalPrice += (decimal)item.Price!;
-            cart.ModifiedDate = DateTimeOffset.Now;
+            cart.ModifiedDate = DateTimeOffset.UtcNow;
+
+            // save changes in db context
             await _cartRepository.SaveChangesAsync();
 
-            // append image source
-            cart.CartItems.ForEach(cartItem =>
-            {
-                cartItem.Item!.Images.ForEach(async image =>
-                    image.ImageSrc = await _imageService.GetImageSourceAsync(image.ImageName));
-            });
+            var result = await MapCart<AddToCartResponse>(cart);
 
-            return _mapper.Map<AddToCartResponse>(cart);
+            return result;
         }
 
         public async Task<RemoveFromCartResponse?> RemoveFromCartAsync(int itemId)
         {
             // authorize user and check if item exists
-            var user = await AuthorizeUser();
+            var user = await AuthorizeUserAsync();
             var item = await GetItemAsync(itemId);
-            var cart = await GetCartAsync(user.Id);
+
+            var cart = user.Cart!;
 
             // check if item exists in cart
             var existingCartItem = cart.CartItems
@@ -103,24 +104,18 @@ namespace api.Services
 
             // update price
             cart.TotalPrice -= (decimal)item.Price!;
-            cart.ModifiedDate = DateTimeOffset.Now;
-
+            cart.ModifiedDate = DateTimeOffset.UtcNow;
 
             await _cartRepository.SaveChangesAsync();
 
-            // append image source
-            cart.CartItems.ForEach(cartItem =>
-            {
-                cartItem.Item!.Images.ForEach(async image =>
-                    image.ImageSrc = await _imageService.GetImageSourceAsync(image.ImageName));
-            });
+            var result = await MapCart<RemoveFromCartResponse>(cart);
 
-            return _mapper.Map<RemoveFromCartResponse>(cart);
+            return result;
         }
 
-        public async Task<GetCartWithItemsResponse> GetCurrentUserCartWithItemsAsync()
+        public async Task<GetCartResponse> GetCurrentUserCart()
         {
-            var user = await AuthorizeUser();
+            var user = await AuthorizeUserAsync();
 
             var cart = await _cartRepository.GetCartWithItemsByIdAsync(user.Id);
 
@@ -129,31 +124,37 @@ namespace api.Services
                 throw new ObjectNotFoundException();
             }
 
-            // add images urls
-            cart.CartItems.ForEach(cartItem =>
-            {
-                cartItem.Item!.Images.ForEach(async image =>
-                    image.ImageSrc = await _imageService.GetImageSourceAsync(image.ImageName));
-            });
+            var result = await MapCart<GetCartResponse>(cart);
 
-            return _mapper.Map<GetCartWithItemsResponse>(cart);
+            return result;
         }
 
 
         // helpers
-        private async Task<User> AuthorizeUser()
+        private async Task<ApplicationUser> AuthorizeUserAsync()
         {
-            var id = _httpContextAccessor.HttpContext?
-                .User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (id == null)
+            var name = _httpContextAccessor?.HttpContext?.User?.Identity?.Name;
+
+            if (name == null)
             {
-                throw new UnauthorizedAccessException();
+                throw new UnauthorizedException();
             }
-            var user = await _userRepository.GetByIdAsync(int.Parse(id));
+
+            var user = await _userManager.Users
+                .Include(e => e.Cart)
+                .Include(e => e.WishlistItems)
+                .SingleOrDefaultAsync(e => e.UserName == name);
+
             if (user == null)
             {
-                throw new UnauthorizedAccessException();
+                throw new UnauthorizedException();
             }
+
+            /*if (user.Cart is null)
+            {
+                user.Cart = new Cart(user.Id);
+            }*/
+
             return user;
         }
 
@@ -167,21 +168,25 @@ namespace api.Services
             return item;
         }
 
-        private async Task<Cart> GetCartAsync(int userId)
+        private async Task<Cart> GetCartAsync(string userId)
         {
             var cart = await _cartRepository.GetCartWithItemsByIdAsync(userId);
 
             if (cart == null)
             {
-                cart = await _cartRepository.AddAsync(new Cart()
-                {
-                    UserId = userId,
-                    TotalPrice = 0,
-                    ModifiedDate = DateTimeOffset.Now,
-                });
+                cart = await _cartRepository.AddAsync(new Cart(userId));
             }
 
             return cart;
         }
+
+        private async Task<T> MapCart<T>(Cart cart)
+        {
+            cart = await cart.WithImages(_imageService);
+
+            var mapped = _mapper.Map<T>(cart);
+
+            return mapped;
+        } 
     }
 }

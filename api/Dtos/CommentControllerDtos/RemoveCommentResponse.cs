@@ -12,54 +12,53 @@ namespace api.Dtos.CommentControllerDtos
         public decimal Price { get; set; }
         public DateTimeOffset CreatedDate { get; set; }
         public DateTimeOffset ModifiedDate { get; set; }
-        public RCR_CategoryDto? Category { get; set; }
-        public List<RCR_ItemImagesDto>? Images { get; set; }
-        public List<RCR_CommentDto> Comments { get; set; } = new List<RCR_CommentDto>();
+        public RemoveComment_CategoryDto? Category { get; set; }
+        public List<RemoveComment_ItemImagesDto>? Images { get; set; }
+        public List<RemoveComment_CommentDto> Comments { get; set; } = new();
     }
 
 
     // navigation dtos
-    public class RCR_CategoryDto
+    public class RemoveComment_CategoryDto
     {
         public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
     }
 
-    public class RCR_ItemImagesDto
+    public class RemoveComment_ItemImagesDto
     {
         public int Id { get; set; }
         public string ImageName { get; set; } = string.Empty;
-        public string ImageSrc { get; set; } = string.Empty;
+        public string ImageSource { get; set; } = string.Empty;
     }
 
-    public class RCR_CommentDto
+    public class RemoveComment_CommentDto
     {
         public int Id { get; set; }
         public string CommentText { get; set; } = string.Empty;
         public DateTimeOffset CreatedDate { get; set; }
         public DateTimeOffset ModifiedDate { get; set; }
-        public RCR_UserDto? User { get; set; }
+        public RemoveComment_UserDto? User { get; set; }
     }
 
-    public class RCR_UserDto
+    public class RemoveComment_UserDto
     {
-        public int Id { get; set; }
+        public string Id { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
         public string Surname { get; set; } = string.Empty;
-        public List<RCR_UserRoleDto> UserRoles { get; set; } = new List<RCR_UserRoleDto>();
+        public List<RemoveComment_UserRoleDto> UserRoles { get; set; } = new();
     }
 
-    public class RCR_UserRoleDto
+    public class RemoveComment_UserRoleDto
     {
-        public int Id { get; set; }
-        public RCR_RoleDto? Role { get; set; }
+        public RemoveComment_RoleDto? Role { get; set; }
     }
 
-    public class RCR_RoleDto
+    public class RemoveComment_RoleDto
     {
-        public int Id { get; set; }
-        public string RoleName { get; set; } = string.Empty;
+        public string Id { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
     }
 
 
@@ -69,12 +68,12 @@ namespace api.Dtos.CommentControllerDtos
         public RemoveCommentResponseProfiles()
         {
             CreateMap<Item, RemoveCommentResponse>();
-            CreateMap<Category, RCR_CategoryDto>();
-            CreateMap<ItemImage, RCR_ItemImagesDto>();
-            CreateMap<Comment, RCR_CommentDto>();
-            CreateMap<User, RCR_UserDto>();
-            CreateMap<UserRole, RCR_UserRoleDto>();
-            CreateMap<Role, RCR_RoleDto>();
+            CreateMap<Category, RemoveComment_CategoryDto>();
+            CreateMap<ItemImage, RemoveComment_ItemImagesDto>();
+            CreateMap<Comment, RemoveComment_CommentDto>();
+            CreateMap<ApplicationUser, RemoveComment_UserDto>();
+            CreateMap<ApplicationUserRole, RemoveComment_UserRoleDto>();
+            CreateMap<ApplicationRole, RemoveComment_RoleDto>();
         }
     }
 }

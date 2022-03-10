@@ -5,9 +5,9 @@ namespace api.Data
 {
     public class ItemImageRepository : IItemImageRepository
     {
-        private readonly DataContext _context;
+        private readonly ApplicationDbContext _context;
 
-        public ItemImageRepository(DataContext context)
+        public ItemImageRepository(ApplicationDbContext context)
         {
             _context = context;
         }

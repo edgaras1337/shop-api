@@ -23,6 +23,7 @@ namespace api.Controllers
         {
             var item = await _itemService.CreateItemAsync(request);
 
+            // returns not found if category id is invalid
             if (item is null)
             {
                 return NotFound();
@@ -31,10 +32,15 @@ namespace api.Controllers
             return CreatedAtAction(nameof(CreateItem), item);
         }
 
-        [HttpGet("search")]
-        public async Task<ActionResult<SearchItemResponse>> FindItem(SearchItemRequest dto)
+        [HttpGet("search/{searchKey}")]
+        public async Task<ActionResult<SearchItemResponse>> FindItem(string searchKey)
         {
-            var items = await _itemService.FindItemAsync(dto);
+            var items = await _itemService.FindItemAsync(searchKey);
+
+            if (items is null || items.Count == 0)
+            {
+                return NotFound();
+            }
 
             return Ok(items);
         }
@@ -53,10 +59,15 @@ namespace api.Controllers
             return Ok(item);
         }
 
-        [HttpGet]
+        [HttpGet("all")]
         public async Task<ActionResult<List<GetAllItemsResponse>>> GetAll()
         {
             var items = await _itemService.GetAllItemsAsync();
+
+            if (items is null || items.Count == 0)
+            {
+                return NotFound();
+            }
 
             return Ok(items);
         }
@@ -65,10 +76,11 @@ namespace api.Controllers
         [Authorize(Roles = "Administrator")]
         public async Task<ActionResult<UpdateItemResponse>> UpdateItem([FromForm] UpdateItemRequest request)
         {
-            UpdateItemResponse? response;
             try
             {
-                response = await _itemService.UpdateItemAsync(request);
+                var response = await _itemService.UpdateItemAsync(request);
+
+                return Ok(response);
             }
             catch (ObjectNotFoundException)
             {
@@ -78,11 +90,10 @@ namespace api.Controllers
             {
                 return BadRequest();
             }
-
-            return Ok(response);
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Administrator")]
         public async Task<ActionResult> DeleteItem(int id)
         {
             try

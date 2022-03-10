@@ -9,6 +9,7 @@ namespace api.Dtos.CategoryControllerDtos
         [Required]
         [MinLength(3)]
         public string Name { get; set; } = string.Empty;
+        public int? ParentCategoryId { get; set; }
         public IFormFile? ImageFile { get; set; }
     }
 

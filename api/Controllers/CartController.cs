@@ -22,12 +22,13 @@ namespace api.Controllers
         [Authorize]
         public async Task<ActionResult<AddToCartResponse>> AddToCart(int itemId)
         {
-            AddToCartResponse? response;
             try
             {
-                response = await _cartService.AddToCartAsync(itemId);
+                var response = await _cartService.AddToCartAsync(itemId);
+
+                return Ok(response);
             }
-            catch (UnauthorizedAccessException)
+            catch (UnauthorizedException)
             {
                 return Unauthorized();
             }
@@ -35,20 +36,19 @@ namespace api.Controllers
             {
                 return NotFound();
             }
-
-            return Ok(response);
         }
 
         [HttpDelete("remove/{itemId}")]
         [Authorize]
         public async Task<ActionResult<RemoveFromCartResponse>> RemoveFromCart(int itemId)
         {
-            RemoveFromCartResponse? response;
             try
             {
-                response = await _cartService.RemoveFromCartAsync(itemId);
+                var response = await _cartService.RemoveFromCartAsync(itemId);
+
+                return Ok(response);
             }
-            catch (UnauthorizedAccessException)
+            catch (UnauthorizedException)
             {
                 return Unauthorized();
             }
@@ -56,20 +56,19 @@ namespace api.Controllers
             {
                 return NotFound();
             }
-
-            return Ok(response);
         }
 
         [HttpGet]
         [Authorize]
-        public async Task<ActionResult<GetCartWithItemsResponse>> GetCurrentUserCart()
+        public async Task<ActionResult<GetCartResponse>> GetCurrentUserCart()
         {
-            GetCartWithItemsResponse response;
             try
             {
-                response = await _cartService.GetCurrentUserCartWithItemsAsync();
+                var response = await _cartService.GetCurrentUserCart();
+
+                return Ok(response);
             }
-            catch (UnauthorizedAccessException)
+            catch (UnauthorizedException)
             {
                 return Unauthorized();
             }
@@ -77,8 +76,6 @@ namespace api.Controllers
             {
                 return NotFound();
             }
-
-            return Ok(response);
         }
     }
 }

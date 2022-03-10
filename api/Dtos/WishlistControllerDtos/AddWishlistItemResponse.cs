@@ -7,11 +7,12 @@ namespace api.Dtos.WishlistControllerDtos
     public class AddWishlistItemResponse
     {
         public int Id { get; set; }
-        public int UserId { get; set; }
-        public AWIR_ItemDto? Item { get; set; }
+        public string UserId { get; set; } = string.Empty;
+        public DateTimeOffset AddedDate { get; set; }
+        public AddWishlistItem_ItemDto? Item { get; set; }
     }
 
-    public class AWIR_ItemDto
+    public class AddWishlistItem_ItemDto
     {
         public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
@@ -20,21 +21,21 @@ namespace api.Dtos.WishlistControllerDtos
         public decimal Price { get; set; }
         public DateTimeOffset CreatedDate { get; set; }
         public DateTimeOffset ModifiedDate { get; set; }
-        public AWIR_CategoryDto? Category { get; set; }
-        public List<AWIR_ItemImageDto> Images { get; set; } = new List<AWIR_ItemImageDto>();
+        public AddWishlistItem_CategoryDto? Category { get; set; }
+        public List<AddWishlistItem_ItemImageDto> Images { get; set; } = new();
     }
 
-    public class AWIR_CategoryDto
+    public class AddWishlistItem_CategoryDto
     {
         public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
     }
 
-    public class AWIR_ItemImageDto
+    public class AddWishlistItem_ItemImageDto
     {
         public int Id { get; set; }
         public string ImageName { get; set; } = string.Empty;
-        public string ImageSrc { get; set; } = string.Empty;
+        public string ImageSource { get; set; } = string.Empty;
     }
 
     public class AddWishlistItemResponseProfiles : Profile
@@ -42,9 +43,9 @@ namespace api.Dtos.WishlistControllerDtos
         public AddWishlistItemResponseProfiles()
         {
             CreateMap<WishlistItem, AddWishlistItemResponse>();
-            CreateMap<Item, AWIR_ItemDto>();
-            CreateMap<Category, AWIR_CategoryDto>();
-            CreateMap<ItemImage, AWIR_ItemImageDto>();
+            CreateMap<Item, AddWishlistItem_ItemDto>();
+            CreateMap<Category, AddWishlistItem_CategoryDto>();
+            CreateMap<ItemImage, AddWishlistItem_ItemImageDto>();
         }
     }
 }

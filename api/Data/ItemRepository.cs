@@ -5,9 +5,9 @@ namespace api.Data
 {
     public class ItemRepository : IItemRepository
     {
-        private readonly DataContext _context;
+        private readonly ApplicationDbContext _context;
 
-        public ItemRepository(DataContext context)
+        public ItemRepository(ApplicationDbContext context)
         {
             _context = context;
         }
@@ -92,6 +92,10 @@ namespace api.Data
 
         public async Task DeleteAsync(Item item)
         {
+            _context.PurchaseItems
+                .Where(e => e.ItemId == item.Id)
+                .Load();
+
             _context.Items.Remove(item);
             await _context.SaveChangesAsync();
         }

@@ -7,11 +7,9 @@ namespace api.Models
     {
         [Key]
         public int Id { get; set; }
-        [Required]
         public string ImageName { get; set; } = string.Empty;
         [NotMapped]
-        public string ImageSrc { get; set; } = string.Empty;
-        [Required]
+        public string ImageSource { get; set; } = string.Empty;
         [ForeignKey("ItemId")]
         public int ItemId { get; set; }
 

@@ -5,7 +5,7 @@ namespace api.Services
     public interface IItemService
     {
         Task<CreateItemResponse?> CreateItemAsync(CreateItemRequest request);
-        Task<List<SearchItemResponse>> FindItemAsync(SearchItemRequest dto);
+        Task<List<SearchItemResponse>> FindItemAsync(string searchKey);
         Task<GetItemResponse?> GetItemByIdAsync(int id);
         Task<List<GetAllItemsResponse>> GetAllItemsAsync();
         Task<UpdateItemResponse> UpdateItemAsync(UpdateItemRequest request);

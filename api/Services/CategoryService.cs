@@ -33,153 +33,82 @@ namespace api.Services
             var isUnique = await IsNameUniqueAsync(dto.Name);
             if (!isUnique)
             {
-                return null;
+                throw new DuplicateDataException();
             }
 
             var category = _mapper.Map<Category>(dto);
-            category.CreatedDate = DateTimeOffset.Now;
+            category.CreatedDate = DateTimeOffset.UtcNow;
             category.ModifiedDate = category.CreatedDate;
 
             category.ImageName = await _imageService.SaveImageAsync(dto.ImageFile) ??
                 _config["ImagesConfiguration:DefaultCategoryImageName"];
 
+            if (dto.ParentCategoryId != null)
+            {
+                var parent = await _categoryRepository
+                    .GetByIdAsync((int)dto.ParentCategoryId);
+
+                if (parent is null)
+                {
+                    throw new ObjectNotFoundException();
+                }
+
+                category.Parent = parent;
+            }
+
             // add the category with unique name to db
             await _categoryRepository.AddAsync(category);
 
-            // add the image source
-            var response = _mapper.Map<CreateCategoryResponse>(category);
-            response.ImageSource = await _imageService.GetImageSourceAsync(response.ImageName);
+            var result = await MapCategory<CreateCategoryResponse>(category);
 
-            // map the category as output dto
-            return response;
+            return result;
         }
 
-        public async Task<List<SearchCategoryWithItemsResponse>> FindCategoryAsync
-            (SearchCategoryWithItemsRequest dto)
+        public async Task<List<SearchCategoryWithItemsResponse>> FindCategoryAsync(string searchKey)
         {
-            var categories = await _categoryRepository.FindCategoryWithItemsAsync(dto.SearchKey);
+            searchKey = searchKey.Trim();
 
-            var dtoList = new List<SearchCategoryWithItemsResponse>();
-            categories.ForEach(category =>
-            {
-                category.Items.ForEach(item =>
-                {
-                    item.Images.ForEach(async itemImage =>
-                    {
-                        itemImage.ImageSrc = 
-                            await _imageService.GetImageSourceAsync(itemImage.ImageName);
-                    });
-                });
-                dtoList.Add(_mapper.Map<SearchCategoryWithItemsResponse>(category));
-            });
+            var categories = await _categoryRepository.FindCategoryWithItemsAsync(searchKey);
 
-            return dtoList;
+            var result = await MapCategories<SearchCategoryWithItemsResponse>(categories);
+
+            return result;
         }
 
         public async Task<GetCategoryResponse?> GetCategoryByIdAsync(int id)
         {
-            var category = await _categoryRepository.GetByIdWithItemsAsync(id);
+            var category = await _categoryRepository.GetByIdAsync(id);
 
-            if (category is null)
-            {
-                return null;
-            }
+            var result = await MapCategory<GetCategoryResponse>(category);
 
-            var dto = _mapper.Map<GetCategoryResponse>(category);
-            dto.ImageSource = await _imageService.GetImageSourceAsync(category.ImageName);
-
-            return dto;
+            return result;
         }
 
         public async Task<GetCategoryWithItemsResponse?> GetCategoryWithItemsByIdAsync(int id)
         {
             var category = await _categoryRepository.GetByIdWithItemsAsync(id);
 
-            if(category is null)
-            {
-                return null;
-            }
+            var result = await MapCategory<GetCategoryWithItemsResponse>(category);
 
-            // add item images
-            category.Items.ForEach(item =>
-            {
-                item.Images.ForEach(async itemImage =>
-                {
-                    itemImage.ImageSrc =
-                        await _imageService.GetImageSourceAsync(itemImage.ImageName);
-                });
-
-                item.Comments.ForEach(async comment =>
-                {
-                    comment.User!.ImageSrc = await _imageService.GetImageSourceAsync(comment.User.ImageName);
-                });
-            });
-
-            var dto = _mapper.Map<GetCategoryWithItemsResponse>(category);
-            dto.ImageSource = await _imageService.GetImageSourceAsync(category.ImageName);
-
-            return dto;
+            return result;
         }
 
         public async Task<List<GetAllCategoriesResponse>> GetAllCategoriesAsync()
         {
             var categories = await _categoryRepository.GetAllAsync();
 
-            var dto = new List<GetAllCategoriesResponse>();
+            var result = await MapCategories<GetAllCategoriesResponse>(categories);
 
-            if (categories is null)
-            {
-                // return empty dto list
-                return dto;
-            }
-
-            categories.ForEach(async category =>
-            {
-                var mapped = _mapper.Map<GetAllCategoriesResponse>(category);
-                mapped.ImageSource = await _imageService.GetImageSourceAsync(category.ImageName);
-
-                dto.Add(mapped);
-            });
-
-            return dto;
+            return result;
         }
 
         public async Task<List<GetAllCategoriesWithItemsResponse>> GetAllCategoriesWithItemsAsync()
         {
             var categories = await _categoryRepository.GetAllWithItemsAsync();
 
-            var dto = new List<GetAllCategoriesWithItemsResponse>();
-
-            if (categories is null)
-            {
-                // return empty dto list
-                return dto;
-            }
-
-            categories.ForEach(async category =>
-            {
-                // add item and user images
-                category.Items.ForEach(item =>
-                {
-                    item.Images.ForEach(async itemImage =>
-                    {
-                        itemImage.ImageSrc =
-                            await _imageService.GetImageSourceAsync(itemImage.ImageName);
-                    });
-
-                    item.Comments.ForEach(async comment =>
-                    {
-                        comment.User!.ImageSrc = await _imageService.GetImageSourceAsync(comment.User.ImageName);
-                    });
-                });
-
-                var mapped = _mapper.Map<GetAllCategoriesWithItemsResponse>(category);
-                mapped.ImageSource = await _imageService.GetImageSourceAsync(category.ImageName);
-
-                dto.Add(mapped);
-            });
+            var result = await MapCategories<GetAllCategoriesWithItemsResponse>(categories);
             
-            return dto;
+            return result;
         }
 
         public async Task<UpdateCategoryResponse?> UpdateAsync(UpdateCategoryRequest dto)
@@ -202,7 +131,7 @@ namespace api.Services
 
             _mapper.Map(dto, category);
 
-            category.ModifiedDate = DateTimeOffset.Now;
+            category.ModifiedDate = DateTimeOffset.UtcNow;
 
             // update image
             var defaultImageName = _config["ImagesConfiguration:DefaultCategoryImageName"];
@@ -225,11 +154,9 @@ namespace api.Services
 
             await _categoryRepository.SaveChangesAsync();
 
-            category.Items.ForEach(async item => await AppendItemImageSrc(item));
-            var response = _mapper.Map<UpdateCategoryResponse>(category);
-            response.ImageSource = await _imageService.GetImageSourceAsync(category.ImageName);
+            var result = await MapCategory<UpdateCategoryResponse>(category);
 
-            return response;
+            return result;
         }
 
         public async Task DeleteByIdAsync(int id)
@@ -264,29 +191,38 @@ namespace api.Services
             return false;
         }
 
-        private async Task<Item> AppendItemImageSrc(Item item)
+        private async Task<List<T>> MapCategories<T>(List<Category>? categories)
         {
-            item.Images.ForEach(async image => 
-                image.ImageSrc = await _imageService.GetImageSourceAsync(image.ImageName));
+            var dtoList = new List<T>();
 
-            return await Task.FromResult(item);
-        }
-
-        private async Task<List<T>> MapCategories<T>(List<Category> categories, List<T> dtoList)
-        {
-            categories.ForEach(async category =>
+            if (categories != null)
             {
-                // add item images
-                category.Items.ForEach(async item => await AppendItemImageSrc(item));
+                categories.ForEach(async category =>
+                {
+                    // add item and user images
+                    category = await category.WithImagesAsync(_imageService);
 
-                // add to dto
-                var dto = _mapper.Map<dynamic>(category);
-                dto.ImageSource = await _imageService.GetImageSourceAsync(category.ImageName);
+                    var mapped = _mapper.Map<T>(category);
 
-                dtoList.Add(dto);
-            });
+                    dtoList.Add(mapped);
+                });
+            }
 
             return await Task.FromResult(dtoList);
+        }
+
+        private async Task<T?> MapCategory<T>(Category? category)
+        {
+            if (category is null)
+            {
+                return await Task.FromResult(default(T));
+            }
+
+            category = await category.WithImagesAsync(_imageService);
+
+            var mapped = _mapper.Map<T>(category);
+
+            return mapped;
         }
     }
 }

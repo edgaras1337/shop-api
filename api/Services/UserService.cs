@@ -8,6 +8,8 @@ using api.Helpers;
 using api.Models;
 using api.UserControllerDtos;
 using AutoMapper;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using System.Collections.Generic;
 using System.Data;
@@ -17,273 +19,235 @@ namespace api.Services
 {
     public class UserService : IUserService
     {
-        private readonly IUserRepository _userRepository;
         private readonly ICartRepository _cartRepository;
-        private readonly IRoleRepository _roleRepository;
-        private readonly IJwtService _jwtService;
         private readonly IImageService _imageService;
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _contextAccessor;
         private readonly IConfiguration _config;
 
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly RoleManager<ApplicationRole> _roleManager;
+
         public UserService(
-            IUserRepository userRepository,
             ICartRepository cartRepository,
-            IRoleRepository roleRepository,
-            IJwtService jwtService,
             IImageService imageService,
             IMapper mapper,
             IHttpContextAccessor contextAccessor,
-            IConfiguration config)
+            IConfiguration config,
+            UserManager<ApplicationUser> userManager,
+            SignInManager<ApplicationUser> signInManager,
+            RoleManager<ApplicationRole> roleManager)
         {
-            _userRepository = userRepository;
             _cartRepository = cartRepository;
-            _roleRepository = roleRepository;
-            _jwtService = jwtService;
             _imageService = imageService;
             _mapper = mapper;
             _contextAccessor = contextAccessor;
             _config = config;
+
+            _userManager = userManager;
+            _signInManager = signInManager;
+            _roleManager = roleManager;
         }
 
-        public async Task<GetUserByIdResponse?> GetByIdAsync(int id)
+        public async Task<GetUserByIdResponse?> GetByIdAsync(string id)
         {
-            // get user by id from repo
-            var user = await _userRepository.GetByIdAsync(id);
-            user = await AppendImgSourceAsync(user);
+            var user = await _userManager.FindByIdAsync(id);
 
-            // append image source and return user
-            return _mapper.Map<GetUserByIdResponse>(user);
-        }
-
-        public async Task<GetCurrentUserResponse?> GetCurrentUserAsync()
-        {
-            var user = await GetCurrentUserModelAsync();
-            user = await AppendImgSourceAsync(user);
-
-            // add images
-            user = await AppendImgSourceAsync(user);
-            user!.Cart?.CartItems.ForEach(cartItem =>
-            {
-                cartItem.Item?.Images.ForEach(async image =>
-                    image.ImageSrc = await _imageService.GetImageSourceAsync(image.ImageName));
-            });
-
-            user.WishlistItems.ForEach(wishlistItem =>
-            {
-                wishlistItem.Item?.Images.ForEach(async image =>
-                    image.ImageSrc = await _imageService.GetImageSourceAsync(image.ImageName));
-            });
-
-            return _mapper.Map<GetCurrentUserResponse>(user);
-        }
-
-        public async Task<List<GetAllUsersResponse>> GetAllUsersAsync()
-        {
-            var users = await _userRepository.GetAllAsync();
-
-            // create dtos list and append all users converted to dtos
-            var dtos = new List<GetAllUsersResponse>();
-            foreach(var user in users)
-            {
-                var userWithImageSrc = await AppendImgSourceAsync(user);
-
-                if(userWithImageSrc != null)
-                {
-                    dtos.Add(_mapper.Map<GetAllUsersResponse>(userWithImageSrc));
-                }
-            }
-
-            return dtos;
-        }
-
-        public async Task<List<FindUserResponse>> FindUserAsync(FindUserRequest request)
-        {
-            var users = await _userRepository.FindUserAsync(request.SearchKey);
-
-            var dtoList = new List<FindUserResponse>();
-            foreach(var user in users)
-            {
-                var userWithImage = await AppendImgSourceAsync(user);
-                dtoList.Add(_mapper.Map<FindUserResponse>(userWithImage));
-            }
-
-            return dtoList;
-        }
-
-        public async Task<LoginResponse?> AuthenticateAsync(LoginRequest dto)
-        {
-            // check for email
-            var user = await _userRepository.GetByEmailAsync(dto.Email);
             if (user is null)
             {
                 return null;
             }
 
-            // authenticate password
-            if (!BCrypt.Net.BCrypt.Verify(dto.Password, user.Password))
+            user = await user.WithImagesAsync(_imageService);
+
+            var dto = _mapper.Map<GetUserByIdResponse>(user);
+
+            return dto;
+        }
+
+        public async Task<GetCurrentUserResponse?> GetCurrentUserAsync()
+        {
+            // get current user
+            var user = await GetCurrentUserModelAsync();
+
+            if (user is null)
             {
                 return null;
             }
-            // generate jwt token
-            var jwt = await _jwtService.Generate(user);
 
-            // append token to an http cookie
-            _contextAccessor.HttpContext?
-                .Response.Cookies
-                .Append(_config["JwtConfiguration:CookieName"], jwt, new CookieOptions
-                {
-                    HttpOnly = true,
-                });
+            user = await user.WithImagesAsync(_imageService);
 
-            // add images
-            user = await AppendImgSourceAsync(user);
-            user!.Cart?.CartItems.ForEach(cartItem =>
+            var dto = _mapper.Map<GetCurrentUserResponse>(user);
+
+            return dto;
+        }
+
+        public async Task<List<GetAllUsersResponse>> GetAllUsersAsync()
+        {
+            var dtoList = new List<GetAllUsersResponse>();
+
+            var users = await _userManager.Users
+                .ToListAsync();
+
+            users.ForEach(async user =>
             {
-                cartItem.Item?.Images.ForEach(async image =>
-                    image.ImageSrc = await _imageService.GetImageSourceAsync(image.ImageName));
+                user = await user.WithImagesAsync(_imageService);
+
+                var dto = _mapper.Map<GetAllUsersResponse>(user);
+
+                dtoList.Add(dto);
             });
 
-            user.WishlistItems.ForEach(wishlistItem =>
+            return dtoList;
+        }
+
+        public async Task<List<FindUserResponse>> FindUserAsync(string searchKey)
+        {
+            searchKey = searchKey.Trim();
+
+            var users = await _userManager.Users
+                .Where(
+                    e => e.Name.Contains(searchKey) ||
+                    e.Surname.Contains(searchKey) ||
+                    e.Email.Contains(searchKey))
+                .ToListAsync();
+
+            var resDto = new List<FindUserResponse>();
+
+            users.ForEach(async user =>
             {
-                wishlistItem.Item?.Images.ForEach(async image =>
-                    image.ImageSrc = await _imageService.GetImageSourceAsync(image.ImageName));
+                user = await user.WithImagesAsync(_imageService);
+
+                var resDtoItem = _mapper.Map<FindUserResponse>(user);
+
+                resDto.Add(resDtoItem);
             });
 
-            var response = _mapper.Map<LoginResponse>(user);
-            response.Token = jwt;
+            return resDto;
+        }
 
-            return response;
+        public async Task<LoginResponse?> AuthenticateAsync(LoginRequest dto)
+        {
+            var result = await _signInManager
+                .PasswordSignInAsync(dto.Email, dto.Password, true, false);
+
+            if (!result.Succeeded)
+            {
+                return null;
+            }
+
+            var user = await _userManager.Users
+                .Include(e => e.WishlistItems)
+                .Include(e => e.Cart)
+                .SingleOrDefaultAsync(e => e.Email == dto.Email);
+
+            if (user is null)
+            {
+                return null;
+            }
+
+            user = await user.WithImagesAsync(_imageService);
+
+            var resDto = _mapper.Map<LoginResponse>(user);
+            
+            return resDto;
         }
 
         public async Task LogoutAsync()
         {
-            _contextAccessor.HttpContext?
-                .Response.Cookies.Delete(_config["JwtConfiguration:CookieName"]);
-
-            await Task.CompletedTask;
+            await _signInManager.SignOutAsync();
         }
 
         public async Task<RegisterResponse> CreateUserAsync(RegisterRequest dto)
         {
-            var existingUser = await _userRepository.GetByEmailAsync(dto.Email);
-            if (existingUser is not null)
+            if (await _userManager.Users.AnyAsync(e => e.Email == dto.Email))
             {
-                throw new DuplicateNameException();
+                throw new DuplicateDataException();
             }
 
-            // create a new user from dto
-            var user = _mapper.Map<User>(dto);
-            user.Password = BCrypt.Net.BCrypt.HashPassword(user.Password);
+            var user = _mapper.Map<ApplicationUser>(dto);
+
+            if (dto.Password != dto.PasswordRepeat)
+            {
+                throw new InvalidPasswordException();
+            }
+
+            var password = new PasswordHasher<ApplicationUser>();
+            var hashed = password.HashPassword(user, dto.Password);
+            user.PasswordHash = hashed;
+
             user.ImageName = _config["ImagesConfiguration:DefaultUserImageName"];
 
-            user.Cart = new Cart()
-            {
-                UserId = user.Id,
-                TotalPrice = 0,
-                ModifiedDate = DateTimeOffset.Now
-            };
-            await Task.FromResult(user);
+            user.UserName = user.Email;
 
-            // get user role id from db
-            var defaultRole = await _roleRepository.GetByRoleNameAsync("Customer");
-            if (defaultRole is null)
+            var createResult = await _userManager.CreateAsync(user);
+
+            if (!createResult.Succeeded)
             {
-                throw new ObjectNotFoundException();
+                throw new UserRegistrationException();
             }
 
-            // add the user role
-            user.UserRoles.Add(new UserRole()
-            {
-                UserId = user.Id,
-                RoleId = defaultRole.Id
-            });
-            await Task.FromResult(user);
+            user.Cart = new Cart(user.Id);
 
-            // add role from dto
-            if (dto.RoleId != null && dto.RoleId != defaultRole.Id)
-            {
-                // get specified role by id from db
-                var dtoRole = await _roleRepository.GetByIdAsync((int)dto.RoleId);
-                if (dtoRole is null)
-                {
-                    throw new ObjectNotFoundException();
-                }
+            await _userManager.AddToRoleAsync(user, "Customer");
 
-                // add another role to userRoles list
-                user.UserRoles.Add(new UserRole() 
-                { 
-                    UserId = user.Id, 
-                    RoleId = (int)dto.RoleId 
-                });
-                await Task.FromResult(user);
+            user = await user.WithImagesAsync(_imageService);
+            
+            if (dto.RoleId != null)
+            {
+                var role = await _roleManager.FindByIdAsync(dto.RoleId);
+                await _userManager.AddToRoleAsync(user, role.Name);
             }
-            await _userRepository.AddAsync(user);
 
-            user = await AppendImgSourceAsync(user);
+            var resDto = _mapper.Map<RegisterResponse>(user);
 
-            return _mapper.Map<RegisterResponse>(user);
+            return resDto;
         }
 
         public async Task<UpdateUserResponse> UpdateCurrentUserAsync(UpdateUserRequest dto)
         {
-            // get current user
-            var id = await GetCurrentUserIdAsync();
-            if(id is null)
+            var user = await GetCurrentUserModelAsync();
+
+            if (user == null)// || user.Id != dto.Id)
             {
-                throw new UnauthorizedAccessException();
-            }
-            var user = await _userRepository.GetByIdAsync((int)id);
-            if(user is null)
-            {
-                throw new UnauthorizedAccessException();
+                throw new UnauthorizedException();
             }
 
-            var defaultImageName = _config["ImagesConfiguration:DefaultUserImageName"];
-
-            // check dto email for existing email
             if (dto.Email != null)
             {
-                var existingUser = await _userRepository.GetByEmailAsync(dto.Email);
-                if (existingUser != null && existingUser.Email != dto.Email)
+                var tmp = await _userManager.FindByEmailAsync(dto.Email);
+                if (await _userManager.Users.AnyAsync(e => e.Email == dto.Email))
                 {
                     throw new DuplicateNameException();
                 }
             }
-            if (dto.ImageFile != null)
-            {
-                user.ImageName = await _imageService.SaveImageAsync(dto.ImageFile) ??
-                    defaultImageName;
-            }
 
-            // map properties which are not null from dto to user
             _mapper.Map(dto, user);
+            user.UserName = user.Email;
 
-            // update image
+            var defaultImageName = _config["ImagesConfiguration:DefaultUserImageName"];
+
             if (dto.DeleteImage)
             {
-                // delete image only when its not the default one
-                // when deleted set the default image
                 if (user.ImageName != defaultImageName)
                 {
                     await _imageService.DeleteImageFileAsync(user.ImageName);
+
                     user.ImageName = defaultImageName;
                 }
             }
+
             if (dto.ImageFile != null)
             {
-                // save the selected image, if failed, set default image
+                if (user.ImageName != defaultImageName)
+                {
+                    await _imageService.DeleteImageFileAsync(user.ImageName);
+                }
+
                 user.ImageName = await _imageService.SaveImageAsync(dto.ImageFile) ??
                     defaultImageName;
             }
-
-
-            // check if any of three fields isnt null
-            // all three null:
-            //      - do nothing
-            // at least one wasnt null:
-            //      - check if all three are not null
-            //      - update password
 
             var oldPw = dto.OldPassword?.Trim();
             var newPw = dto.NewPassword?.Trim();
@@ -291,89 +255,73 @@ namespace api.Services
 
             if (oldPw != null || newPw != null || repeatNewPw != null)
             {
-                if (newPw != repeatNewPw || newPw is null || repeatNewPw is null || oldPw is null ||
-                   !BCrypt.Net.BCrypt.Verify(oldPw, user.Password))
+                if (newPw != repeatNewPw)
                 {
                     throw new InvalidPasswordException();
                 }
 
-                user.Password = BCrypt.Net.BCrypt.HashPassword(newPw);
+                var changePasswordResult = await _userManager.ChangePasswordAsync(user, oldPw, newPw);
+
+                if (!changePasswordResult.Succeeded)
+                {
+                    throw new InvalidPasswordException();
+                }
             }
 
-            await _userRepository.SaveChangesAsync();
+            await _userManager.UpdateAsync(user);
 
-            return _mapper.Map<UpdateUserResponse>(await AppendImgSourceAsync(user));
+            user = await user.WithImagesAsync(_imageService);
+
+            var resDto = _mapper.Map<UpdateUserResponse>(user);
+
+            return resDto;
         }
 
-        public async Task<bool> DeleteUserByIdAsync(int id)
+        public async Task<bool> DeleteUserByIdAsync(string id)
         {
-            var user = await _userRepository.GetByIdAsync(id);
+            var user = await _userManager.FindByIdAsync(id);
 
-            if(user is null)
+            if (user == null)
             {
                 return false;
             }
 
-            await _userRepository.DeleteAsync(user);
+            await _userManager.DeleteAsync(user);
 
             return true;
         }
-        public async Task DeactivateAccountAsync()
+        public async Task<bool> DeactivateAccountAsync()
         {
             var user = await GetCurrentUserModelAsync();
 
             if(user == null)
             {
-                throw new UnauthorizedAccessException();
+                return false;
             }
 
-            await _userRepository.DeleteAsync(user);
-            _contextAccessor.HttpContext?.Response.Cookies.Delete(_config["JwtConfiguration:CookieName"]);
+            await _signInManager.SignOutAsync();
+            await _userManager.DeleteAsync(user);
+
+            return true;
         }
 
-
-        // helpers
-        private async Task<User?> AppendImgSourceAsync(User? user)
+        private async Task<ApplicationUser?> GetCurrentUserModelAsync()
         {
-            if(user != null && user.ImageName != null)
-            {
-                user.ImageSrc = await _imageService.GetImageSourceAsync(user.ImageName);
-            }
-            return user;
-        }
+            var name = _contextAccessor?.HttpContext?.User?.Identity?.Name;
 
-        private async Task<int?> GetCurrentUserIdAsync()
-        {
-            // get user id from claims
-            var id = await Task.FromResult(_contextAccessor.HttpContext?
-                .User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
-
-            return id is null ? null : int.Parse(id);
-        }
-
-        private async Task<User?> GetCurrentUserModelAsync()
-        {
-            // get current user id
-            var id = await GetCurrentUserIdAsync();
-            if (id is null)
+            if (name is null)
             {
                 return null;
             }
 
-            // get user by the id found in claims
-            var user = await _userRepository.GetByIdAsync((int)id);
+            var user = await _userManager.Users
+                .Include(e => e.Cart)
+                .Include(e => e.WishlistItems)
+                .Include(e => e.Purchases)
+                .SingleOrDefaultAsync(e => e.UserName == name);
 
-            return await AppendImgSourceAsync(user);
+            return user;
         }
-
-        /*private async Task<User?> GetByEmailAsync(string email)
-        {
-            // get user by email from repo
-            var user = await _userRepository.GetByEmailAsync(email);
-
-            // append image source and return user
-            return await AppendImgSourceAsync(user);
-        }*/
     }
 }
 

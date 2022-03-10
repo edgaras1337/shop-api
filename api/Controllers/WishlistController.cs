@@ -22,12 +22,13 @@ namespace api.Controllers
         [Authorize]
         public async Task<ActionResult<List<AddWishlistItemResponse>>> AddToWishlist(int itemId)
         {
-            List<AddWishlistItemResponse>? wishlistItems;
             try
             {
-                wishlistItems = await _wishlistItemService.AddToWishlistAsync(itemId);
+                var wishlistItems = await _wishlistItemService.AddToWishlistAsync(itemId);
+
+                return Ok(wishlistItems ?? new List<AddWishlistItemResponse>());
             }
-            catch (UnauthorizedAccessException)
+            catch (UnauthorizedException)
             {
                 return Unauthorized();
             }
@@ -39,20 +40,19 @@ namespace api.Controllers
             {
                 return Conflict();
             }
-
-            return Ok(wishlistItems ?? new List<AddWishlistItemResponse>());
         }
 
         [HttpDelete("remove/{itemId}")]
         [Authorize]
         public async Task<ActionResult<List<RemoveWishlistItemResponse>>> RemoveWishlistItem(int itemId)
         {
-            List<RemoveWishlistItemResponse>? wishlistItems;
             try
             {
-                wishlistItems = await _wishlistItemService.RemoveWishlistItemAsync(itemId);
+                var wishlistItems = await _wishlistItemService.RemoveWishlistItemAsync(itemId);
+
+                return Ok(wishlistItems ?? new List<RemoveWishlistItemResponse>());
             }
-            catch (UnauthorizedAccessException)
+            catch (UnauthorizedException)
             {
                 return Unauthorized();
             }
@@ -60,25 +60,22 @@ namespace api.Controllers
             {
                 return NotFound();
             }
-
-            return Ok(wishlistItems ?? new List<RemoveWishlistItemResponse>());
         }
 
         [HttpGet]
         [Authorize]
-        public async Task<ActionResult<List<GetCurrentUserWishlistResponse>>> GetCurrentUserWishlist(int itemId)
+        public async Task<ActionResult<List<GetCurrentUserWishlistResponse>>> GetCurrentUserWishlist()
         {
-            List<GetCurrentUserWishlistResponse>? wishlistItems;
             try
             {
-                wishlistItems = await _wishlistItemService.GetCurrentUserWishlistAsync();
+                var wishlistItems = await _wishlistItemService.GetCurrentUserWishlistAsync();
+
+                return Ok(wishlistItems);
             }
-            catch (UnauthorizedAccessException)
+            catch (UnauthorizedException)
             {
                 return Unauthorized();
             }
-
-            return Ok(wishlistItems);
         }
     }
 }

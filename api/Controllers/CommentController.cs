@@ -24,12 +24,13 @@ namespace api.Controllers
         [Authorize]
         public async Task<ActionResult<AddCommentResponse>> AddComment(AddCommentRequest dto)
         {
-            AddCommentResponse? item;
             try
             {
-                item = await _commentService.AddCommentAsync(dto);
+                var item = await _commentService.AddCommentAsync(dto);
+
+                return Ok(item);
             }
-            catch (UnauthorizedAccessException)
+            catch (UnauthorizedException)
             {
                 return Unauthorized();
             }
@@ -37,8 +38,6 @@ namespace api.Controllers
             {
                 return NotFound();
             }
-
-            return Ok(item);
         }
 
         // updates the comment and returns item dto containing all comments
@@ -46,12 +45,13 @@ namespace api.Controllers
         [Authorize]
         public async Task<ActionResult<UpdateCommentResponse>> UpdateComment(UpdateCommentRequest dto)
         {
-            UpdateCommentResponse? item;
             try
             {
-                item = await _commentService.UpdateCommentAsync(dto);
+                var item = await _commentService.UpdateCommentAsync(dto);
+
+                return Ok(item);
             }
-            catch (UnauthorizedAccessException)
+            catch (UnauthorizedException)
             {
                 return Unauthorized();
             }
@@ -59,8 +59,6 @@ namespace api.Controllers
             {
                 return NotFound();
             }
-
-            return Ok(item);
         }
 
         // removes a comment and returns the item dto containing all items
@@ -68,12 +66,13 @@ namespace api.Controllers
         [Authorize]
         public async Task<ActionResult<RemoveCommentResponse>> RemoveComment(int commentId)
         {
-            RemoveCommentResponse? item;
             try
             {
-                item = await _commentService.RemoveCommentByIdAsync(commentId);
+                var item = await _commentService.RemoveCommentByIdAsync(commentId);
+
+                return Ok(item);
             }
-            catch (UnauthorizedAccessException)
+            catch (UnauthorizedException)
             {
                 return Unauthorized();
             }
@@ -81,8 +80,6 @@ namespace api.Controllers
             {
                 return NotFound();
             }
-
-            return Ok(item);
         }
     }
 }

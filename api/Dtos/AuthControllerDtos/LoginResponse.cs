@@ -5,13 +5,12 @@ namespace api.Dtos.AuthControllerDtos
 {
     public class LoginResponse
     {
-        public int Id { get; set; }
+        public string Id { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
         public string Surname { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
         public DateTime DateOfBirth { get; set; }
-        public string ImageSrc { get; set; } = string.Empty;
-        public string Token { get; set; } = string.Empty;
+        public string ImageSource { get; set; } = string.Empty;
         public List<LoginResponse_UserRoleDto> UserRoles { get; set; } = new();
         public LoginResponse_Cart? Cart { get; set; }
         public List<LoginResponse_WishlistItemsDto>  WishlistItems { get; set; } = new();
@@ -19,19 +18,18 @@ namespace api.Dtos.AuthControllerDtos
 
     public class LoginResponse_UserRoleDto
     {
-        public int Id { get; set; }
         public LoginResponse_RoleDto? Role { get; set; }
     }
 
     public class LoginResponse_RoleDto
     {
-        public int Id { get; set; }
-        public string RoleName { get; set; } = string.Empty;
+        public string Id { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
     }
 
     public class LoginResponse_Cart
     {
-        public int UserId { get; set; }
+        public string UserId { get; set; } = string.Empty;
         public decimal TotalPrice { get; set; }
         public DateTimeOffset ModifiedDate { get; set; }
 
@@ -48,7 +46,7 @@ namespace api.Dtos.AuthControllerDtos
     public class LoginResponse_WishlistItemsDto
     {
         public int Id { get; set; }
-        public int UserId { get; set; }
+        public string UserId { get; set; } = string.Empty;
         public LoginResponse_ItemDto? Item { get; set; }
     }
 
@@ -76,16 +74,16 @@ namespace api.Dtos.AuthControllerDtos
     {
         public int Id { get; set; }
         public string ImageName { get; set; } = string.Empty;
-        public string ImageSrc { get; set; } = string.Empty;
+        public string ImageSource { get; set; } = string.Empty;
     }
 
     public class LoginResponseProfiles : Profile
     {
         public LoginResponseProfiles()
         {
-            CreateMap<User, LoginResponse>();
-            CreateMap<UserRole, LoginResponse_UserRoleDto>();
-            CreateMap<Role, LoginResponse_RoleDto>();
+            CreateMap<ApplicationUser, LoginResponse>();
+            CreateMap<ApplicationUserRole, LoginResponse_UserRoleDto>();
+            CreateMap<ApplicationRole, LoginResponse_RoleDto>();
             CreateMap<Cart, LoginResponse_Cart>();
             CreateMap<CartItem, LoginResponse_CartItemDto>();
             CreateMap<WishlistItem, LoginResponse_WishlistItemsDto>();

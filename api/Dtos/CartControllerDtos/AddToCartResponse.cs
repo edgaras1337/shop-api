@@ -5,7 +5,7 @@ namespace api.Dtos.CartControllerDtos
 {
     public class AddToCartResponse
     {
-        public int UserId { get; set; }
+        public string UserId { get; set; } = string.Empty;
         public decimal TotalPrice { get; set; }
         public DateTimeOffset ModifiedDate { get; set; }
 
@@ -43,7 +43,7 @@ namespace api.Dtos.CartControllerDtos
     {
         public int Id { get; set; }
         public string ImageName { get; set; } = string.Empty;
-        public string ImageSrc { get; set; } = string.Empty;
+        public string ImageSource { get; set; } = string.Empty;
     }
 
     public class AddToCartResponseProfiles : Profile

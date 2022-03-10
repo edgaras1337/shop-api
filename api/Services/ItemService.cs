@@ -44,7 +44,7 @@ namespace api.Services
             var itemModel = _mapper.Map<Item>(request);
 
             // add date
-            itemModel.CreatedDate = DateTimeOffset.Now;
+            itemModel.CreatedDate = DateTimeOffset.UtcNow;
             itemModel.ModifiedDate = itemModel.CreatedDate;
 
             // add item
@@ -80,18 +80,30 @@ namespace api.Services
             // save changes (added images)
             await _itemRepository.SaveChangesAsync();
 
-            return _mapper.Map<CreateItemResponse>((await AppendImageSrc(itemModel)));
+            itemModel = await itemModel.WithImagesAsync(_imageService);
+
+            var resDto = _mapper.Map<CreateItemResponse>(itemModel);
+
+            return resDto;
+
+            //return _mapper.Map<CreateItemResponse>((await AppendImageSrc(itemModel)));
         }
 
-        public async Task<List<SearchItemResponse>> FindItemAsync(SearchItemRequest dto)
+        public async Task<List<SearchItemResponse>> FindItemAsync(string searchKey)
         {
-            var items = await _itemRepository.FindAsync(dto.SearchKey);
+            searchKey = searchKey.Trim();
+
+            var items = await _itemRepository.FindAsync(searchKey);
 
             var dtoList = new List<SearchItemResponse>();
+
             items.ForEach(async item =>
             {
-                item = await AppendImageSrc(item);
-                dtoList.Add(_mapper.Map<SearchItemResponse>(item));
+                item = await item.WithImagesAsync(_imageService);
+
+                var dto = _mapper.Map<SearchItemResponse>(item);
+
+                dtoList.Add(dto);
             });
 
             return dtoList;
@@ -106,13 +118,11 @@ namespace api.Services
                 return null;
             }
 
-            // append user image
-            item.Comments.ForEach(async comment =>
-                comment.User!.ImageSrc = await _imageService.GetImageSourceAsync(comment.User.ImageName));
+            item = await item.WithImagesAsync(_imageService);
 
-            item = await AppendImageSrc(item);
+            var dto = _mapper.Map<GetItemResponse>(item);
 
-            return _mapper.Map<GetItemResponse>(item);
+            return dto;
         }
 
         public async Task<List<GetAllItemsResponse>> GetAllItemsAsync()
@@ -122,12 +132,9 @@ namespace api.Services
             var itemsDto = new List<GetAllItemsResponse>();
             foreach (var item in items)
             {
-                item.Comments.ForEach(async comment =>
-                    comment.User!.ImageSrc = await _imageService.GetImageSourceAsync(comment.User.ImageName));
+                var dto = _mapper.Map<GetAllItemsResponse>(await item.WithImagesAsync(_imageService));
 
-                var itemWithImages = await AppendImageSrc(item);
-
-                itemsDto.Add(_mapper.Map<GetAllItemsResponse>(itemWithImages));
+                itemsDto.Add(_mapper.Map<GetAllItemsResponse>(dto));
             }
 
             return itemsDto;
@@ -160,7 +167,7 @@ namespace api.Services
             }
 
             // set modified date
-            item.ModifiedDate = DateTimeOffset.Now;
+            item.ModifiedDate = DateTimeOffset.UtcNow;
 
             // save changes (updated properties)
             await _itemRepository.SaveChangesAsync();
@@ -235,9 +242,11 @@ namespace api.Services
             // save changes (updated images)
             await _itemRepository.SaveChangesAsync();
 
-            var response = _mapper.Map<UpdateItemResponse>(await AppendImageSrc(item));
+            item = await item.WithImagesAsync(_imageService);
 
-            return response;
+            var resDto = _mapper.Map<UpdateItemResponse>(item);
+
+            return resDto;
         }
 
         public async Task DeleteItemAsync(int id)
@@ -275,14 +284,14 @@ namespace api.Services
 
 
         // helpers
-        private async Task<Item> AppendImageSrc(Item item)
+        /*private async Task<Item> AppendImageSrc(Item item)
         {
             foreach(var image in item.Images)
             {
-                image.ImageSrc = await _imageService.GetImageSourceAsync(image.ImageName);
+                image.ImageSource = await _imageService.GetImageSourceAsync(image.ImageName);
             }
 
             return item;
-        }
+        }*/
     }
 }

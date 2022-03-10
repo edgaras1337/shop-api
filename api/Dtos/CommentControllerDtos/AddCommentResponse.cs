@@ -1,4 +1,5 @@
-﻿using api.Models;
+﻿using api.Dtos.AuthControllerDtos;
+using api.Models;
 using AutoMapper;
 
 namespace api.Dtos.CommentControllerDtos
@@ -29,7 +30,7 @@ namespace api.Dtos.CommentControllerDtos
     {
         public int Id { get; set; }
         public string ImageName { get; set; } = string.Empty;
-        public string ImageSrc { get; set; } = string.Empty;
+        public string ImageSource { get; set; } = string.Empty;
     }
 
     public class AddCommentResponse_CommentDto
@@ -43,23 +44,22 @@ namespace api.Dtos.CommentControllerDtos
 
     public class AddCommentResponse_UserDto
     {
-        public int Id { get; set; }
+        public string Id { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
         public string Surname { get; set; } = string.Empty;
-        public List<AddCommentResponse_UserRoleDto> UserRoles { get; set; } = new();
+        public List<GetCurrentUser_UserRoleDto> UserRoles { get; set; } = new();
     }
 
     public class AddCommentResponse_UserRoleDto
     {
-        public int Id { get; set; }
         public AddCommentResponse_RoleDto? Role { get; set; }
     }
 
     public class AddCommentResponse_RoleDto
     {
-        public int Id { get; set; }
-        public string RoleName { get; set; } = string.Empty;
+        public string Id { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
     }
 
 
@@ -72,9 +72,9 @@ namespace api.Dtos.CommentControllerDtos
             CreateMap<Category, AddCommentResponse_CategoryDto>();
             CreateMap<ItemImage, AddCommentResponse_ItemImagesDto>();
             CreateMap<Comment, AddCommentResponse_CommentDto>();
-            CreateMap<User, AddCommentResponse_UserDto>();
-            CreateMap<UserRole, AddCommentResponse_UserRoleDto>();
-            CreateMap<Role, AddCommentResponse_RoleDto>();
+            CreateMap<ApplicationUser, AddCommentResponse_UserDto>();
+            CreateMap<ApplicationUserRole, AddCommentResponse_UserRoleDto>();
+            CreateMap<ApplicationRole, AddCommentResponse_RoleDto>();
         }
     }
 }

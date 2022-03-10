@@ -12,7 +12,7 @@
         }
 
         public DuplicateDataException(string message, Exception inner)
-            :base(message, inner)
+            : base(message, inner)
         {
         }
     }

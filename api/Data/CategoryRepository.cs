@@ -1,13 +1,14 @@
 ﻿using api.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 
 namespace api.Data
 {
     public class CategoryRepository : ICategoryRepository
     {
-        private readonly DataContext _context;
+        private readonly ApplicationDbContext _context;
 
-        public CategoryRepository(DataContext context)
+        public CategoryRepository(ApplicationDbContext context)
         {
             _context = context;
         }
@@ -29,19 +30,16 @@ namespace api.Data
 
         public async Task<Category?> GetByIdAsync(int id)
         {
-            return await _context.Categories
+            var category = await _context.Categories
                 .SingleOrDefaultAsync(e => e.Id == id);
+
+            return category;
+
         }
         public async Task<Category?> GetByIdWithItemsAsync(int id)
         {
             return await _context.Categories
                 .Include(e => e.Items)
-                    .ThenInclude(e => e.Images)
-                .Include(e => e.Items)
-                    .ThenInclude(e => e.Comments)
-                        .ThenInclude(e => e.User)
-                            .ThenInclude(e => e!.UserRoles)
-                                .ThenInclude(e => e!.Role)
                 .SingleOrDefaultAsync(e => e.Id == id);
         }
 
@@ -54,12 +52,6 @@ namespace api.Data
         {
             return await _context.Categories
                 .Include(e => e.Items)
-                    .ThenInclude(e => e.Images)
-                .Include(e => e.Items)
-                    .ThenInclude(e => e.Comments)
-                        .ThenInclude(e => e.User)
-                            .ThenInclude(e => e!.UserRoles)
-                                .ThenInclude(e => e!.Role)
                 .SingleOrDefaultAsync(e => e.Name == name);
         }
 
@@ -72,12 +64,6 @@ namespace api.Data
         {
             return await _context.Categories
                 .Include(e => e.Items)
-                    .ThenInclude(e => e.Images)
-                .Include(e => e.Items)
-                    .ThenInclude(e => e.Comments)
-                        .ThenInclude(e => e.User)
-                            .ThenInclude(e => e!.UserRoles)
-                                .ThenInclude(e => e!.Role)
                 .ToListAsync();
         }
 

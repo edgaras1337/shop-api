@@ -5,32 +5,31 @@ namespace api.Dtos.AuthControllerDtos
 {
     public class GetCurrentUserResponse
     {
-        public int Id { get; set; }
+        public string Id { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
         public string Surname { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
         public DateTime DateOfBirth { get; set; }
-        public string ImageSrc { get; set; } = string.Empty;
+        public string ImageSource { get; set; } = string.Empty;
         public List<GetCurrentUser_UserRoleDto> UserRoles { get; set; } = new();
-        public GetCurrentUser_Cart? Cart { get; set; }
+        public GetCurrentUser_CartDto? Cart { get; set; }
         public List<GetCurrentUser_WishlistItemsDto> WishlistItems { get; set; } = new();
     }
 
     public class GetCurrentUser_UserRoleDto
     {
-        public int Id { get; set; }
         public GetCurrentUser_RoleDto? Role { get; set; }
     }
 
     public class GetCurrentUser_RoleDto
     {
-        public int Id { get; set; }
-        public string RoleName { get; set; } = string.Empty;
+        public string Id { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
     }
 
-    public class GetCurrentUser_Cart
+    public class GetCurrentUser_CartDto
     {
-        public int UserId { get; set; }
+        public string UserId { get; set; } = string.Empty;
         public decimal TotalPrice { get; set; }
         public DateTimeOffset ModifiedDate { get; set; }
 
@@ -47,7 +46,6 @@ namespace api.Dtos.AuthControllerDtos
     public class GetCurrentUser_WishlistItemsDto
     {
         public int Id { get; set; }
-        public int UserId { get; set; }
         public GetCurrentUser_ItemDto? Item { get; set; }
     }
 
@@ -75,17 +73,17 @@ namespace api.Dtos.AuthControllerDtos
     {
         public int Id { get; set; }
         public string ImageName { get; set; } = string.Empty;
-        public string ImageSrc { get; set; } = string.Empty;
+        public string ImageSource { get; set; } = string.Empty;
     }
 
     public class GetCurrentUserResponseProfiles : Profile
     {
         public GetCurrentUserResponseProfiles()
         {
-            CreateMap<User, GetCurrentUserResponse>();
-            CreateMap<UserRole, GetCurrentUser_UserRoleDto>();
-            CreateMap<Role, GetCurrentUser_RoleDto>();
-            CreateMap<Cart, GetCurrentUser_Cart>();
+            CreateMap<ApplicationUser, GetCurrentUserResponse>();
+            CreateMap<ApplicationUserRole, GetCurrentUser_UserRoleDto>();
+            CreateMap<ApplicationRole, GetCurrentUser_RoleDto>();
+            CreateMap<Cart, GetCurrentUser_CartDto>();
             CreateMap<CartItem, GetCurrentUser_CartItemDto>();
             CreateMap<WishlistItem, GetCurrentUser_WishlistItemsDto>();
             CreateMap<Item, GetCurrentUser_ItemDto>();

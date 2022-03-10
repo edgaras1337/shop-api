@@ -5,9 +5,9 @@ namespace api.Data
 {
     public class CartRepository : ICartRepository
     {
-        private readonly DataContext _context;
+        private readonly ApplicationDbContext _context;
 
-        public CartRepository(DataContext context)
+        public CartRepository(ApplicationDbContext context)
         {
             _context = context;
         }
@@ -20,13 +20,7 @@ namespace api.Data
             return cart;
         }
 
-        public async Task<Cart?> GetCartByIdAsync(int id)
-        {
-            return await _context.Carts
-                .SingleOrDefaultAsync(e => e.UserId == id);
-        }
-
-        public async Task<Cart?> GetCartWithItemsByIdAsync(int id)
+        public async Task<Cart?> GetCartWithItemsByIdAsync(string id)
         {
             return await _context.Carts
                 .Include(e => e.CartItems)

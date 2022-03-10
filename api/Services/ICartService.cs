@@ -14,6 +14,6 @@ namespace api.Services
 
         Task<AddToCartResponse> AddToCartAsync(int itemId);
         Task<RemoveFromCartResponse?> RemoveFromCartAsync(int itemId);
-        Task<GetCartWithItemsResponse> GetCurrentUserCartWithItemsAsync();
+        Task<GetCartResponse> GetCurrentUserCart();
     }
 }

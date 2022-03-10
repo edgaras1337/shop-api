@@ -12,21 +12,21 @@ namespace api.Dtos.ItemControllerDtos
         public decimal Price { get; set; }
         public DateTimeOffset CreatedDate { get; set; }
         public DateTimeOffset ModifiedDate { get; set; }
-        public CIR_CategoryDto? Category { get; set; }
-        public List<CIR_ItemImageDto>? Images { get; set; }
+        public CreateItemResponse_CategoryDto? Category { get; set; }
+        public List<CreateItemResponse_ItemImageDto>? Images { get; set; }
     }
 
-    public class CIR_CategoryDto
+    public class CreateItemResponse_CategoryDto
     {
         public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
     }
 
-    public class CIR_ItemImageDto
+    public class CreateItemResponse_ItemImageDto
     {
         public int Id { get; set; }
         public string ImageName { get; set; } = string.Empty;
-        public string ImageSrc { get; set; } = string.Empty;
+        public string ImageSource { get; set; } = string.Empty;
     }
 
     public class CreateItemResponseProfiles : Profile
@@ -34,8 +34,8 @@ namespace api.Dtos.ItemControllerDtos
         public CreateItemResponseProfiles()
         {
             CreateMap<Item, CreateItemResponse>();
-            CreateMap<Category, CIR_CategoryDto>();
-            CreateMap<ItemImage, CIR_ItemImageDto>();
+            CreateMap<Category, CreateItemResponse_CategoryDto>();
+            CreateMap<ItemImage, CreateItemResponse_ItemImageDto>();
         }
     }
 }

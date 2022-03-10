@@ -6,7 +6,7 @@ namespace api.Services
     public interface ICategoryService
     {
         Task<CreateCategoryResponse?> CreateAsync(CreateCategoryRequest request);
-        Task<List<SearchCategoryWithItemsResponse>> FindCategoryAsync(SearchCategoryWithItemsRequest request);
+        Task<List<SearchCategoryWithItemsResponse>> FindCategoryAsync(string searchKey);
         Task<GetCategoryResponse?> GetCategoryByIdAsync(int id);
         Task<GetCategoryWithItemsResponse?> GetCategoryWithItemsByIdAsync(int id);
         Task<List<GetAllCategoriesWithItemsResponse>> GetAllCategoriesWithItemsAsync();

@@ -7,18 +7,17 @@ namespace api.Models
     public class PurchaseItem
     {
         [Key]
+        public int Id { get; set; }
+        [ForeignKey("ItemId")]
+        public int? ItemId { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public int Quantity { get; set; }
+        [Precision(10, 2)]
+        public decimal Price { get; set; }
         [ForeignKey("PurchaseId")]
         public int PurchaseId { get; set; }
-        [Precision(10, 2)]
-        public int? ItemId { get; set; }
-        [Required]
-        public int Name { get; set; }
-        [Required]
-        public int Quantity { get; set; }
-        [Required]
-        public decimal Price { get; set; }
 
-        public Purchase? Purchase { get; set; }
-        public Item? Item { get; set; }
+        public virtual Purchase? Purchase { get; set; }
+        public virtual Item? Item { get; set; }
     }
 }
