@@ -30,7 +30,7 @@ namespace api.Data
                 .SingleOrDefaultAsync(e => e.Id == id);
         }
 
-        public async Task<WishlistItem?> GetCartItemByUserAndItemIdAsync(string userId, int itemId)
+        public async Task<WishlistItem?> GetCartItemByUserAndItemIdAsync(int userId, int itemId)
         {
             return await _context.WishlistItems
                 .Include(e => e.Item)
@@ -40,7 +40,7 @@ namespace api.Data
                 .SingleOrDefaultAsync(e => e.ItemId == itemId && e.UserId == userId);
         }
 
-        public async Task<List<WishlistItem>?> GetWishlistByUserId(string userId)
+        public async Task<List<WishlistItem>?> GetWishlistByUserId(int userId)
         {
             return await _context.WishlistItems
                  .Include(e => e.Item)

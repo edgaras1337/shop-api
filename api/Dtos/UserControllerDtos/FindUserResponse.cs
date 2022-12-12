@@ -5,7 +5,7 @@ namespace api.Dtos.UserControllerDtos
 {
     public class FindUserResponse
     {
-        public string Id { get; set; } = string.Empty;
+        public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
         public string Surname { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
@@ -20,7 +20,7 @@ namespace api.Dtos.UserControllerDtos
 
         public class FindUserResponse_RoleDto
         {
-            public string Id { get; set; } = string.Empty;
+            public int Id { get; set; }
             public string Name { get; set; } = string.Empty;
         }
 

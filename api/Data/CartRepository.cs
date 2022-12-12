@@ -20,7 +20,7 @@ namespace api.Data
             return cart;
         }
 
-        public async Task<Cart?> GetCartWithItemsByIdAsync(string id)
+        public async Task<Cart?> GetCartWithItemsByIdAsync(int id)
         {
             return await _context.Carts
                 .Include(e => e.CartItems)

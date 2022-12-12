@@ -8,7 +8,7 @@ namespace api.Models
         [Key]
         public int Id { get; set; }
         [ForeignKey("UserId")]
-        public string UserId { get; set; } = string.Empty;
+        public int UserId { get; set; }
         public DateTimeOffset AddedDate { get; set; }
         [ForeignKey("ItemId")]
         public int ItemId { get; set; }

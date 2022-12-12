@@ -28,7 +28,7 @@ namespace api.Data
             return purchase;
         }
 
-        public async Task<List<Purchase>?> GetByUserIdAsync(string userId)
+        public async Task<List<Purchase>?> GetByUserIdAsync(int userId)
         {
             var purchases = await _context.Purchases
                 .Where(e => e.UserId == userId)

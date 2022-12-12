@@ -31,7 +31,7 @@ namespace api.Data
                 .SingleOrDefaultAsync(e => e.Id == id);
         }
 
-        public async Task<CartItem?> GetCartItemByCartAndItemIdAsync(string cartId, int itemId)
+        public async Task<CartItem?> GetCartItemByCartAndItemIdAsync(int cartId, int itemId)
         {
             return await _context.CartItems
                 .Include(e => e.Item)
@@ -41,7 +41,7 @@ namespace api.Data
                 .SingleOrDefaultAsync(e => e.CartId == cartId && e.ItemId == itemId);
         }
 
-        public async Task<List<CartItem>?> GetCartItemsByCartIdAsync(string cartId)
+        public async Task<List<CartItem>?> GetCartItemsByCartIdAsync(int cartId)
         {
             return await _context.CartItems
                 .Include(e => e.Item)

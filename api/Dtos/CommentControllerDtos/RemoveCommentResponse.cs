@@ -43,7 +43,7 @@ namespace api.Dtos.CommentControllerDtos
 
     public class RemoveComment_UserDto
     {
-        public string Id { get; set; } = string.Empty;
+        public int Id { get; set; }
         public string Email { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
         public string Surname { get; set; } = string.Empty;
@@ -57,7 +57,7 @@ namespace api.Dtos.CommentControllerDtos
 
     public class RemoveComment_RoleDto
     {
-        public string Id { get; set; } = string.Empty;
+        public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
     }
 

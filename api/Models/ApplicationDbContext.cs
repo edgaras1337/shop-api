@@ -5,11 +5,10 @@ using Microsoft.EntityFrameworkCore;
 namespace api.Models
 {
     public class ApplicationDbContext
-        : IdentityDbContext//<ApplicationUser, ApplicationRole, string>
-        <
-    ApplicationUser, ApplicationRole, string,
-    IdentityUserClaim<string>, ApplicationUserRole, IdentityUserLogin<string>,
-    IdentityRoleClaim<string>, IdentityUserToken<string>>
+        : IdentityDbContext<
+    ApplicationUser, ApplicationRole, int,
+    IdentityUserClaim<int>, ApplicationUserRole, IdentityUserLogin<int>,
+    IdentityRoleClaim<int>, IdentityUserToken<int>>
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) 
             : base(options) 
@@ -115,13 +114,13 @@ namespace api.Models
                 .Navigation(e => e.Item)
                 .AutoInclude();
 
-            modelBuilder.Entity<Purchase>()
-                .Navigation(e => e.PurchaseItems)
-                .AutoInclude();
+            //modelBuilder.Entity<Purchase>()
+            //    .Navigation(e => e.PurchaseItems)
+            //    .AutoInclude();
 
-            modelBuilder.Entity<Purchase>()
-                .Navigation(e => e.DeliveryAddress)
-                .AutoInclude();
+            //modelBuilder.Entity<Purchase>()
+            //    .Navigation(e => e.DeliveryAddress)
+            //    .AutoInclude();
         }
     }
 }

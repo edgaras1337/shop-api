@@ -14,7 +14,7 @@ using System.Security.Claims;
 
 namespace api.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/auth")]
     [ApiController]
     public class AuthController : ControllerBase
     {
@@ -26,14 +26,14 @@ namespace api.Controllers
         }
 
         [HttpPost("register")]
-        public async Task<ActionResult<RegisterResponse>> Register(RegisterRequest dto)
+        public async Task<ActionResult<RegisterResponse>> RegisterAsync(RegisterRequest dto)
         {
             try
             {
                 // create user account and return response dto
                 var response = await _userService.CreateUserAsync(dto);
 
-                return CreatedAtAction(nameof(Register), response);
+                return CreatedAtAction(nameof(RegisterAsync), response);
             }
             catch (DuplicateDataException)
             {
@@ -56,7 +56,7 @@ namespace api.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<ActionResult<LoginResponse>> Login(LoginRequest dto)
+        public async Task<ActionResult<LoginResponse>> LoginAsync(LoginRequest dto)
         {
             // authenticate user and return response dto
             var user = await _userService.AuthenticateAsync(dto);
@@ -69,7 +69,8 @@ namespace api.Controllers
         }
 
         [HttpPost("logout")]
-        public async Task<ActionResult> Logout()
+        [Authorize]
+        public async Task<ActionResult> LogoutAsync()
         {
             await _userService.LogoutAsync();
 
@@ -78,7 +79,7 @@ namespace api.Controllers
 
         [HttpGet]
         [Authorize]
-        public async Task<ActionResult<GetCurrentUserResponse>> GetCurrentUser()
+        public async Task<ActionResult<GetCurrentUserResponse>> GetCurrentUserAsync()
         { 
             var user = await _userService.GetCurrentUserAsync();
 

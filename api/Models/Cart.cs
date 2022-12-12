@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace api.Models
@@ -7,14 +8,15 @@ namespace api.Models
     {
         [Key]
         [ForeignKey("UserId")]
-        public string UserId { get; set; } = string.Empty;
+        public int UserId { get; set; }
+        [Column(TypeName = "decimal(10, 2)")]
         public decimal TotalPrice { get; set; }
         public DateTimeOffset ModifiedDate { get; set; }
 
         public virtual List<CartItem> CartItems { get; set; } = new List<CartItem>();
         public virtual ApplicationUser? User { get; set; }
 
-        public Cart(string userId)
+        public Cart(int userId)
         {
             UserId = userId;
             ModifiedDate = DateTimeOffset.UtcNow;

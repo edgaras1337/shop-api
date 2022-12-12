@@ -1,11 +1,12 @@
 ﻿using api.Models;
 using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 
 namespace api.Dtos.AuthControllerDtos
 {
     public class GetCurrentUserResponse
     {
-        public string Id { get; set; } = string.Empty;
+        public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
         public string Surname { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
@@ -23,13 +24,13 @@ namespace api.Dtos.AuthControllerDtos
 
     public class GetCurrentUser_RoleDto
     {
-        public string Id { get; set; } = string.Empty;
+        public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
     }
 
     public class GetCurrentUser_CartDto
     {
-        public string UserId { get; set; } = string.Empty;
+        public int UserId { get; set; }
         public decimal TotalPrice { get; set; }
         public DateTimeOffset ModifiedDate { get; set; }
 

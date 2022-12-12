@@ -11,7 +11,7 @@ namespace api.Models
         [ForeignKey("ItemId")]
         public int ItemId { get; set; }
         [ForeignKey("CartId")]
-        public string CartId { get; set; } = string.Empty;
+        public int CartId { get; set; }
 
         public virtual Item? Item { get; set; }
         public virtual Cart? Cart { get; set; }

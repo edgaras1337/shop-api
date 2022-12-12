@@ -55,7 +55,7 @@ namespace api.Controllers
 
         [HttpGet("{userId}/history")]
         [Authorize(Roles = "Administrator")]
-        public async Task<ActionResult<List<GetCurrentUserPurchaseHistory>>> GetUserPurchaseHistory(string userId)
+        public async Task<ActionResult<List<GetCurrentUserPurchaseHistory>>> GetUserPurchaseHistory(int userId)
         {
             try
             {
@@ -71,7 +71,7 @@ namespace api.Controllers
 
         [HttpGet("all/history")]
         [Authorize(Roles = "Administrator")]
-        public async Task<ActionResult<List<GetAllPurchaseHistoryResponse>>> GetAllPyrchaseHistory()
+        public async Task<ActionResult<List<GetAllPurchaseHistoryResponse>>> GetAllPurchaseHistory()
         {
             try
             {

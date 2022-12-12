@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace api.Models
 {
-    public class ApplicationUserRole : IdentityUserRole<string>
+    public class ApplicationUserRole : IdentityUserRole<int>
     {
         public virtual ApplicationUser? User { get; set; }
         public virtual ApplicationRole? Role { get; set; }

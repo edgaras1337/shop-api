@@ -168,7 +168,7 @@ namespace api.Services
             return item;
         }
 
-        private async Task<Cart> GetCartAsync(string userId)
+        private async Task<Cart> GetCartAsync(int userId)
         {
             var cart = await _cartRepository.GetCartWithItemsByIdAsync(userId);
 

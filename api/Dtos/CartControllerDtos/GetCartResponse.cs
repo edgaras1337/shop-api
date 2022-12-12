@@ -5,7 +5,7 @@ namespace api.Dtos.CartControllerDtos
 {
     public class GetCartResponse
     {
-        public string UserId { get; set; } = string.Empty;
+        public int UserId { get; set; }
         public decimal TotalPrice { get; set; }
         public DateTimeOffset ModifiedDate { get; set; }
 

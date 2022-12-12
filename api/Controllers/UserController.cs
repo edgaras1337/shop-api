@@ -11,7 +11,7 @@ using System.Data;
 
 namespace api.Controllers
 {
-    [Route("api/user")]
+    [Route("api/users")]
     [ApiController]
     public class UserController : ControllerBase
     {
@@ -50,7 +50,7 @@ namespace api.Controllers
             }
         }
 
-        [HttpGet("all")]
+        [HttpGet]
         [Authorize(Roles = "Administrator")]
         public async Task<ActionResult<List<GetAllUsersResponse>>> GetAllUsers()
         {
@@ -61,11 +61,11 @@ namespace api.Controllers
 
         [HttpGet("{id}")]
         [Authorize(Roles = "Administrator")]
-        public async Task<ActionResult<GetUserByIdResponse>> GetUserById(string id)
+        public async Task<ActionResult<GetUserByIdResponse>> GetUserById(int id)
         {
             var user = await _userService.GetByIdAsync(id);
 
-            if(user is null)
+            if (user is null)
             {
                 return NotFound();
             }
@@ -79,7 +79,7 @@ namespace api.Controllers
         {
             var users = await _userService.FindUserAsync(searchKey);
 
-            if(users is null || users.Count == 0)
+            if (users is null || users.Count == 0)
             {
                 return NotFound();
             }
@@ -103,7 +103,7 @@ namespace api.Controllers
         [Authorize(Roles = "Administrator")]
         public async Task<ActionResult> DeleteUser(string id)
         {
-            if(!await _userService.DeleteUserByIdAsync(id))
+            if (!await _userService.DeleteUserByIdAsync(id))
             {
                 return NotFound();
             }

@@ -11,7 +11,7 @@ namespace api.Models
         [ForeignKey("ItemId")]
         public int ItemId { get; set; }
         [ForeignKey("UserId")]
-        public string UserId { get; set; } = string.Empty;
+        public int UserId { get; set; }
         public DateTimeOffset CreatedDate { get; set; }
         public DateTimeOffset ModifiedDate { get; set; }
 

@@ -23,26 +23,12 @@ namespace api.Models
             }
 
             var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-            var user = new ApplicationUser
-            {
-                Name = "edgaras",
-                Surname = "franka",
-                Email = "power.user@gmail.com",
-                UserName = "power.user@gmail.com",
-                PhoneNumber = "+00000000000",
-                ImageName = configuration["ImagesConfiguration:DefaultUserImageName"],
-                DateOfBirth = Convert.ToDateTime("2001-08-27"),
-                Country = "Lithuania",
-                City = "Vilnius",
-                Address = "Fake street 900",
-                ZipCode = "12345",
-                SecurityStamp = new Guid().ToString(),
-            };
+            var user = configuration.GetSection("PowerUser").Get<ApplicationUser>();
 
             if (!userManager.Users.Any(u => u.UserName == user.UserName))
             {
                 var password = new PasswordHasher<ApplicationUser>();
-                var hashed = password.HashPassword(user, "abc123");
+                var hashed = password.HashPassword(user, user.PasswordHash);
                 user.PasswordHash = hashed;
 
                 await userManager.CreateAsync(user);
@@ -62,7 +48,7 @@ namespace api.Models
                 }
             }
 
-            await userManager.AddToRolesAsync(user, new string[] { roles[0], roles[1] });
+            await userManager.AddToRolesAsync(user, roles);
         }
     }
 }

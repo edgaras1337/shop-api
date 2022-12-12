@@ -9,8 +9,8 @@ namespace api.Models
         [Key]
         public int Id { get; set; }
         [ForeignKey("UserId")]
-        public string? UserId { get; set; }
-        [Precision(10, 2)]
+        public int? UserId { get; set; }
+        [Column(TypeName = "decimal(10, 2)")]
         public decimal TotalPrice { get; set; }
         public DateTimeOffset PurchaseDate { get; set; }
         public bool IsDelivered { get; set; }
@@ -27,7 +27,7 @@ namespace api.Models
             IsDelivered = false;
         }
 
-        public Purchase(string userId)
+        public Purchase(int userId)
         {
             UserId = userId;
             TotalPrice = 0;

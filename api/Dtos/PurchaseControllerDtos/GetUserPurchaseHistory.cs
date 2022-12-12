@@ -6,7 +6,7 @@ namespace api.Dtos.PurchaseControllerDtos
     public class GetUserPurchaseHistory
     {
         public int Id { get; set; }
-        public string? UserId { get; set; }
+        public int? UserId { get; set; }
         public decimal TotalPrice { get; set; }
         public DateTimeOffset PurchaseDate { get; set; }
         public bool IsDelivered { get; set; }

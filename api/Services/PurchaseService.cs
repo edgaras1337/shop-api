@@ -155,7 +155,7 @@ namespace api.Services
             return result;
         }
 
-        public async Task<List<GetUserPurchaseHistory>> GetUserPurchaseHistoryAsync(string userId)
+        public async Task<List<GetUserPurchaseHistory>> GetUserPurchaseHistoryAsync(int userId)
         {
             var purchases = await _purchaseRepository.GetAllAsync();
 

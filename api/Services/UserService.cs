@@ -19,7 +19,6 @@ namespace api.Services
 {
     public class UserService : IUserService
     {
-        private readonly ICartRepository _cartRepository;
         private readonly IImageService _imageService;
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _contextAccessor;
@@ -30,7 +29,6 @@ namespace api.Services
         private readonly RoleManager<ApplicationRole> _roleManager;
 
         public UserService(
-            ICartRepository cartRepository,
             IImageService imageService,
             IMapper mapper,
             IHttpContextAccessor contextAccessor,
@@ -39,7 +37,6 @@ namespace api.Services
             SignInManager<ApplicationUser> signInManager,
             RoleManager<ApplicationRole> roleManager)
         {
-            _cartRepository = cartRepository;
             _imageService = imageService;
             _mapper = mapper;
             _contextAccessor = contextAccessor;
@@ -50,9 +47,9 @@ namespace api.Services
             _roleManager = roleManager;
         }
 
-        public async Task<GetUserByIdResponse?> GetByIdAsync(string id)
+        public async Task<GetUserByIdResponse?> GetByIdAsync(int id)
         {
-            var user = await _userManager.FindByIdAsync(id);
+            var user = await _userManager.FindByIdAsync(id.ToString());
 
             if (user is null)
             {
@@ -107,8 +104,7 @@ namespace api.Services
             searchKey = searchKey.Trim();
 
             var users = await _userManager.Users
-                .Where(
-                    e => e.Name.Contains(searchKey) ||
+                .Where(e => e.Name.Contains(searchKey) ||
                     e.Surname.Contains(searchKey) ||
                     e.Email.Contains(searchKey))
                 .ToListAsync();
@@ -196,7 +192,7 @@ namespace api.Services
             
             if (dto.RoleId != null)
             {
-                var role = await _roleManager.FindByIdAsync(dto.RoleId);
+                var role = await _roleManager.FindByIdAsync(dto.RoleId.ToString());
                 await _userManager.AddToRoleAsync(user, role.Name);
             }
 
@@ -294,7 +290,7 @@ namespace api.Services
         {
             var user = await GetCurrentUserModelAsync();
 
-            if(user == null)
+            if (user == null)
             {
                 return false;
             }

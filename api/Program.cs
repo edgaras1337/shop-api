@@ -19,6 +19,11 @@ var services = builder.Services;
 
 services.AddAutoMapper(typeof(Program));
 
+services.AddMvc(options =>
+{
+    options.SuppressAsyncSuffixInActionNames = false;
+});
+
 services.AddHealthChecks()
     .AddSqlServer(
         builder.Configuration.GetConnectionString("Default"),
@@ -38,7 +43,7 @@ services.AddSwaggerGen();
 
 services.AddDbContext<ApplicationDbContext>(options => options
     .UseLazyLoadingProxies()
-    .UseSqlServer(builder.Configuration.GetConnectionString("Default")));
+    .UseSqlServer(builder.Configuration.GetConnectionString("Local")));
 
 services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
 {
@@ -48,6 +53,11 @@ services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
     options.Password.RequiredUniqueChars = 0;
 }).AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
+
+services.ConfigureApplicationCookie(options =>
+{
+    options.Cookie.SameSite = SameSiteMode.None;
+});
 
 services.AddAuthorization();
 
@@ -106,7 +116,7 @@ if (app.Environment.IsDevelopment())
 
 
 app.UseCors(options => options
-    .WithOrigins(new[] { "http://localhost:3000", "http://localhost:8080", "http://localhost:4200" })
+    .WithOrigins(new[] { "http://localhost:3000", "https://localhost:8000", "http://localhost:4200", })
     .AllowAnyHeader()
     .AllowAnyMethod()
     .AllowCredentials()
@@ -117,8 +127,7 @@ app.UseAuthorization();
 app.UseHttpsRedirection();
 
 // add roles and power user
-SeedData.InitializeRolesAndAdmin(app.Services, app.Configuration)
-    .Wait();
+SeedData.InitializeRolesAndAdmin(app.Services, app.Configuration).Wait();
 
 var env = builder.Environment;
 app.UseStaticFiles(new StaticFileOptions

@@ -12,7 +12,7 @@ namespace api.Models
         public int? ItemId { get; set; }
         public string Name { get; set; } = string.Empty;
         public int Quantity { get; set; }
-        [Precision(10, 2)]
+        [Column(TypeName = "decimal(10, 2)")]
         public decimal Price { get; set; }
         [ForeignKey("PurchaseId")]
         public int PurchaseId { get; set; }

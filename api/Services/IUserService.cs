@@ -6,7 +6,7 @@ namespace api.Services
 {
     public interface IUserService
     {
-        Task<GetUserByIdResponse?> GetByIdAsync(string id);
+        Task<GetUserByIdResponse?> GetByIdAsync(int id);
         //Task<User?> GetByEmailAsync(string email);
         Task<GetCurrentUserResponse?> GetCurrentUserAsync();
         Task<List<GetAllUsersResponse>> GetAllUsersAsync();

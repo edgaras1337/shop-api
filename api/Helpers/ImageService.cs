@@ -13,7 +13,7 @@
 
         public async Task<string?> SaveImageAsync(IFormFile? imageFile)
         {
-            if(imageFile == null)
+            if (imageFile == null)
             {
                 return null;
             }

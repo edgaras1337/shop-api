@@ -41,7 +41,7 @@ namespace api.Data
                 .ToListAsync();
         }
 
-        public async Task<List<Comment>> GetCommentsByUserIdAsync(string userId)
+        public async Task<List<Comment>> GetCommentsByUserIdAsync(int userId)
         {
             return await _context.Comments
                 .Include(e => e.Item)

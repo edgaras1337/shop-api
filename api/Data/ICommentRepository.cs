@@ -8,7 +8,7 @@ namespace api.Data
         Task<Comment?> GetByIdAsync(int id);
         Task<List<Comment>> GetAllAsync();
         Task<List<Comment>> GetCommentsByItemIdAsync(int itemId);
-        Task<List<Comment>> GetCommentsByUserIdAsync(string userId);
+        Task<List<Comment>> GetCommentsByUserIdAsync(int userId);
         Task<Comment> UpdateAsync(Comment comment);
         Task SaveChangesAsync();
         Task DeleteAsync(Comment comment);

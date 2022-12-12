@@ -19,9 +19,6 @@ namespace api.Dtos.ItemControllerDtos
         [Range(0.0, double.MaxValue)]
         [Precision(10, 2)]
         public decimal Price { get; set; }
-        [Required]
-        public DateTimeOffset CreatedDate { get; set; }
-        public DateTimeOffset ModifiedDate { get; set; }
         public List<IFormFile> ItemImageFiles { get; set; } = new List<IFormFile>();
         [Required]
         public int CategoryId { get; set; }
