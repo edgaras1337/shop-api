@@ -4,6 +4,7 @@ using api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace api.Controllers
 {
@@ -22,9 +23,7 @@ namespace api.Controllers
         public async Task<ActionResult<CreateItemResponse>> CreateItem([FromForm] CreateItemRequest request)
         {
             var item = await _itemService.CreateItemAsync(request);
-
-            // returns not found if category id is invalid
-            if (item is null)
+            if (item == null)
             {
                 return NotFound();
             }
@@ -32,44 +31,35 @@ namespace api.Controllers
             return CreatedAtAction(nameof(CreateItem), item);
         }
 
-        [HttpGet("search/{searchKey}")]
-        public async Task<ActionResult<SearchItemResponse>> FindItem(string searchKey)
+        [HttpGet]
+        public async Task<ActionResult<GetItemsResponse>> GetItems([FromQuery] GetItemsParams request)
         {
-            var items = await _itemService.FindItemAsync(searchKey);
-
-            if (items is null || items.Count == 0)
+            try
             {
-                return NotFound();
+                var items = await _itemService.GetItems(request);
+                if (!items.Items?.Any() ?? false)
+                {
+                    return NotFound();
+                }
+                return items;
             }
-
-            return Ok(items);
+            catch 
+            {
+                return BadRequest();
+            }
         }
 
-
-        [HttpGet("{id}")]
-        public async Task<ActionResult<GetItemResponse>> GetItemById(int id)
+        [HttpGet("{id:int}")]
+        public async Task<ActionResult<GetItemResponse>> GetItemById(int id, GetItemParams getParams)
         {
-            var item = await _itemService.GetItemByIdAsync(id);
-
-            if (item is null)
+            getParams.Id = id;
+            var item = await _itemService.GetItemByIdAsync(getParams);
+            if (item == null)
             {
                 return NotFound();
             }
 
             return Ok(item);
-        }
-
-        [HttpGet("all")]
-        public async Task<ActionResult<List<GetAllItemsResponse>>> GetAll()
-        {
-            var items = await _itemService.GetAllItemsAsync();
-
-            if (items is null || items.Count == 0)
-            {
-                return NotFound();
-            }
-
-            return Ok(items);
         }
 
         [HttpPut("update")]
@@ -79,7 +69,6 @@ namespace api.Controllers
             try
             {
                 var response = await _itemService.UpdateItemAsync(request);
-
                 return Ok(response);
             }
             catch (ObjectNotFoundException)
@@ -92,7 +81,7 @@ namespace api.Controllers
             }
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("{id:int}")]
         [Authorize(Roles = "Administrator")]
         public async Task<ActionResult> DeleteItem(int id)
         {

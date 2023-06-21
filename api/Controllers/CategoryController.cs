@@ -1,6 +1,7 @@
 ﻿using api.CustomExceptions;
 using api.Dtos;
 using api.Dtos.CategoryControllerDtos;
+using api.Models;
 using api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -22,12 +23,11 @@ namespace api.Controllers
 
         [HttpPost("add")]
         [Authorize(Roles = "Administrator")]
-        public async Task<ActionResult<CreateCategoryResponse>> Create(CreateCategoryRequest request)
+        public async Task<ActionResult<CreateCategoryResponse>> Create([FromForm] CreateCategoryRequest request)
         {
             try
             {
                 var category = await _categoryService.CreateAsync(request);
-
                 return CreatedAtAction(nameof(Create), category);
             }
             catch (ObjectNotFoundException)
@@ -40,79 +40,29 @@ namespace api.Controllers
             }
         }
 
-        [HttpGet("search/{searchKey}")]
-        public async Task<ActionResult<SearchCategoryWithItemsResponse>> FindItem(string searchKey)
+        [HttpGet("{id:int}")]
+        public async Task<ActionResult<GetCategoryResponse>> GetCategoryByIdAsync([FromRoute] int id, [FromQuery] GetCategoryParams getParams)
         {
-            var categories = await _categoryService.FindCategoryAsync(searchKey);
-
-            if (categories is null || categories.Count == 0)
+            getParams.Id = id;
+            var response = await _categoryService.GetCategoryByIdAsync(getParams);
+            if (response == null)
             {
                 return NotFound();
             }
 
-            return Ok(categories);
+            return Ok(response);
         }
 
-        [HttpGet("{id}")]
-        public async Task<ActionResult<GetCategoryResponse>> GetCategoryById(int id)
+        [HttpGet]
+        public async Task<ActionResult<List<GetCategoriesResponse>>> GetCategories([FromQuery] GetCategoriesParams getParams)
         {
-            // get category dto, which contains category items
-            var category = await _categoryService.GetCategoryByIdAsync(id);
-
-            if (category is null)
-            {
-                return NotFound();
-            }
-
-            return Ok(category);
-        }
-
-        [HttpGet("{id}/items")]
-        public async Task<ActionResult<GetCategoryWithItemsResponse>> GetCategoryWithItemsById(int id)
-        {
-            // get category dto, which contains category items
-            var category = await _categoryService.GetCategoryWithItemsByIdAsync(id);
-
-            if(category is null)
-            {
-                return NotFound();
-            }
-
-            return Ok(category);
-        }
-
-        [HttpGet("all")]
-        public async Task<ActionResult<List<GetAllCategoriesResponse>>> GetAll()
-        {
-            // get category list dto, which contains category items
-            var categories = await _categoryService.GetAllCategoriesAsync();
-
-            if (categories is null || categories.Count == 0)
-            {
-                return NotFound();
-            }
-
-            return Ok(categories);
-        }
-
-        [HttpGet("all/items")]
-        public async Task<ActionResult<List<GetAllCategoriesWithItemsResponse>>> GetAllWithItems()
-        {
-            // get category list dto, which contains category items
-            var categories = await _categoryService.GetAllCategoriesWithItemsAsync();
-
-            if (categories is null || categories.Count == 0)
-            {
-                return NotFound();
-            }
-
-            return Ok(categories);
+            var response = await _categoryService.GetCategoriesAsync(getParams);
+            return Ok(response);
         }
 
         [HttpPut("update")]
         [Authorize(Roles = "Administrator")]
-        public async Task<ActionResult<UpdateCategoryResponse>> UpdateCategory(
-            [FromForm] UpdateCategoryRequest request)
+        public async Task<ActionResult<UpdateCategoryResponse>> UpdateCategory([FromForm] UpdateCategoryRequest request)
         {
             try
             {
@@ -130,7 +80,7 @@ namespace api.Controllers
             }
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("{id:int}")]
         [Authorize(Roles = "Administrator")]
         public async Task<ActionResult> Delete(int id)
         {

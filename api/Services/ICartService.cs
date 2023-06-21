@@ -1,4 +1,6 @@
 ﻿using api.Dtos.CartControllerDtos;
+using api.Models;
+using System.Linq.Expressions;
 
 namespace api.Services
 {
@@ -15,5 +17,6 @@ namespace api.Services
         Task<AddToCartResponse> AddToCartAsync(int itemId);
         Task<RemoveFromCartResponse?> RemoveFromCartAsync(int itemId);
         Task<GetCartResponse> GetCurrentUserCart();
+        Task RecalcCartPrice(Expression<Func<Cart, bool>> cartFilter);
     }
 }

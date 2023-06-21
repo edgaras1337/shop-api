@@ -8,74 +8,79 @@ namespace api.Dtos.UserControllerDtos
         public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
         public string Surname { get; set; } = string.Empty;
-        public DateTimeOffset DateOfBirth { get; set; }
         public string Email { get; set; } = string.Empty;
-        public string ImageName { get; set; } = string.Empty;
+        public DateTime DateOfBirth { get; set; }
         public string ImageSource { get; set; } = string.Empty;
-        public List<UpdateUserResponse_UserRoleDto> UserRoles { get; set; } = new();
-        public UpdateUserResponse_CartDto? Cart { get; set; }
-        public List<UpdateUserResponse_WishlistItemsDto> WishlistItems { get; set; } = new();
-    }
+        public List<UserRoleDto> UserRoles { get; set; } = new();
+        public CartDto? Cart { get; set; }
+        public List<WishlistItemsDto> WishlistItems { get; set; } = new();
 
-    public class UpdateUserResponse_UserRoleDto
-    {
-        public UpdateUserResponse_RoleDto? Role { get; set; }
-    }
+        public class UserRoleDto
+        {
+            public RoleDto? Role { get; set; }
 
-    public class UpdateUserResponse_RoleDto
-    {
-        public int Id { get; set; }
-        public string Name { get; set; } = string.Empty;
-    }
+            public class RoleDto
+            {
+                public int Id { get; set; }
+                public string Name { get; set; } = string.Empty;
+            }
+        }
 
-    public class UpdateUserResponse_CartDto
-    {
-        public int UserId { get; set; }
-        public decimal TotalPrice { get; set; }
-        public DateTimeOffset ModifiedDate { get; set; }
+        public class CartDto
+        {
+            public int UserId { get; set; }
+            public decimal TotalPrice { get; set; }
+            public DateTimeOffset ModifiedDate { get; set; }
 
-        public List<UpdateUserResponse_CartItemDto> CartItems { get; set; } = new();
-    }
+            public List<CartItemDto> CartItems { get; set; } = new();
 
-    public class UpdateUserResponse_CartItemDto
-    {
-        public int Id { get; set; }
-        public int Quantity { get; set; }
+            public class CartItemDto
+            {
+                public int Id { get; set; }
+                public int Quantity { get; set; }
 
-        public UpdateUserResponse_ItemDto? Item { get; set; }
-    }
-    public class UpdateUserResponse_WishlistItemsDto
-    {
-        public int Id { get; set; }
-        public string UserId { get; set; } = string.Empty;
-        public UpdateUserResponse_ItemDto? Item { get; set; }
-    }
+                public ItemDto? Item { get; set; }
+            }
+        }
 
+        public class WishlistItemsDto
+        {
+            public int Id { get; set; }
+            public ItemDto? Item { get; set; }
+        }
 
-    public class UpdateUserResponse_ItemDto
-    {
-        public int Id { get; set; }
-        public string Name { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
-        public int Quantity { get; set; }
-        public decimal Price { get; set; }
-        public DateTimeOffset CreatedDate { get; set; }
-        public DateTimeOffset ModifiedDate { get; set; }
-        public UpdateUserResponse_CategoryDto? Category { get; set; }
-        public List<UpdateUserResponse_ItemImageDto> Images { get; set; } = new();
-    }
+        public class ItemDto
+        {
+            public int Id { get; set; }
+            public string Name { get; set; } = string.Empty;
+            public string Description { get; set; } = string.Empty;
+            public int Quantity { get; set; }
 
-    public class UpdateUserResponse_CategoryDto
-    {
-        public int Id { get; set; }
-        public string Name { get; set; } = string.Empty;
-    }
+            public ItemPriceDto? Price { get; set; }
+            public CategoryDto? Category { get; set; }
+            public List<ItemImageDto>? Images { get; set; }
 
-    public class UpdateUserResponse_ItemImageDto
-    {
-        public int Id { get; set; }
-        public string ImageName { get; set; } = string.Empty;
-        public string ImageSource { get; set; } = string.Empty;
+            public class CategoryDto
+            {
+                public int Id { get; set; }
+                public string Name { get; set; } = string.Empty;
+            }
+
+            public class ItemImageDto
+            {
+                public int Id { get; set; }
+                public string ImageName { get; set; } = string.Empty;
+                public string ImageSource { get; set; } = string.Empty;
+            }
+
+            public class ItemPriceDto
+            {
+                public int Id { get; set; }
+                public decimal Price { get; set; }
+                public bool IsOnSale { get; set; }
+                public string Currency { get; set; } = string.Empty;
+            }
+        }
     }
 
     public class UpdateUserResponseProfiles : Profile
@@ -83,14 +88,15 @@ namespace api.Dtos.UserControllerDtos
         public UpdateUserResponseProfiles()
         {
             CreateMap<ApplicationUser, UpdateUserResponse>();
-            CreateMap<ApplicationUserRole, UpdateUserResponse_UserRoleDto>();
-            CreateMap<ApplicationRole, UpdateUserResponse_RoleDto>();
-            CreateMap<Cart, UpdateUserResponse_CartDto>();
-            CreateMap<CartItem, UpdateUserResponse_CartItemDto>();
-            CreateMap<WishlistItem, UpdateUserResponse_WishlistItemsDto>();
-            CreateMap<Item, UpdateUserResponse_ItemDto>();
-            CreateMap<Category, UpdateUserResponse_CategoryDto>();
-            CreateMap<ItemImage, UpdateUserResponse_ItemImageDto>();
+            CreateMap<ApplicationUserRole, UpdateUserResponse.UserRoleDto>();
+            CreateMap<ApplicationRole, UpdateUserResponse.UserRoleDto.RoleDto>();
+            CreateMap<Cart, UpdateUserResponse.CartDto>();
+            CreateMap<CartItem, UpdateUserResponse.CartDto.CartItemDto>();
+            CreateMap<WishlistItem, UpdateUserResponse.WishlistItemsDto>();
+            CreateMap<Item, UpdateUserResponse.ItemDto>();
+            CreateMap<ItemPrice, UpdateUserResponse.ItemDto.ItemPriceDto>();
+            CreateMap<Category, UpdateUserResponse.ItemDto.CategoryDto>();
+            CreateMap<ItemImage, UpdateUserResponse.ItemDto.ItemImageDto>();
         }
     }
 }

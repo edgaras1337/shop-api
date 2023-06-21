@@ -33,9 +33,7 @@ namespace api.Models
 
                 await userManager.CreateAsync(user);
 
-
                 var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-
                 var cart = context.Carts
                     .SingleOrDefault(c => c.UserId == user.Id);
 
@@ -46,9 +44,9 @@ namespace api.Models
                     await context.Carts.AddAsync(cart);
                     await context.SaveChangesAsync();
                 }
-            }
 
-            await userManager.AddToRolesAsync(user, roles);
+                await userManager.AddToRolesAsync(user, roles);
+            }
         }
     }
 }

@@ -1,4 +1,7 @@
-﻿namespace api.Helpers
+﻿using api.Models;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+
+namespace api.Helpers
 {
     public class ImageService : IImageService
     {
@@ -60,6 +63,131 @@
             }
 
             await Task.CompletedTask;
+        }
+
+        public async Task LoadImagesAsync<TEntity> (TEntity entity) where TEntity : class, new()
+        {
+            var task = entity switch
+            {
+                ApplicationUser user => LoadUserImageAsync(user),
+                IEnumerable<ApplicationUser> users => LoadUserImageAsync(users.ToArray()),
+                Category category => LoadCategoryImagesAsync(category),
+                IEnumerable<Category> categories => LoadCategoryImagesAsync(categories.ToArray()),
+                Item item => LoadItemImagesAsync(item),
+                IEnumerable<Item> items => LoadItemImagesAsync(items.ToArray()),
+                Cart cart => LoadCartItemImagesAsync(cart),
+                IEnumerable<Cart> carts => LoadCartItemImagesAsync(carts.ToArray()),
+                WishlistItem wishlistItem => LoadWishlistItemImagesAsync(wishlistItem),
+                IEnumerable<WishlistItem> wishlistItems => LoadWishlistItemImagesAsync(wishlistItems.ToArray()),
+                _ => throw new ArgumentException(null, nameof(entity))
+            };
+
+            await task;
+        }
+
+        //private async Task LoadUserImageAsync(ApplicationUser user) => await LoadUserImageAsync(new ApplicationUser[] { user });
+        private async Task LoadUserImageAsync(params ApplicationUser[] users)
+        {
+            foreach (var user in users)
+            {
+                user.ImageSource = await GetImageSourceAsync(user.ImageName);
+
+                foreach (var image in user.WishlistItems.SelectMany(wishlistItem => wishlistItem.Item!.Images))
+                {
+                    image.ImageSource = await GetImageSourceAsync(image.ImageName);
+                };
+
+                if (user.Cart == null)
+                {
+                    continue;
+                }
+                
+                {
+                    foreach (var image in user.Cart!.CartItems.SelectMany(cartItem => cartItem.Item!.Images))
+                    {
+                        image.ImageSource = await GetImageSourceAsync(image.ImageName);
+                    }
+                }
+            }
+        }
+
+        private async Task LoadCategoryImagesAsync(params Category[] categories)
+        {
+            foreach (var category in categories)
+            {
+                // add image urls to parent categories
+                var currentCategory = category;
+                do
+                {
+                    currentCategory.ImageSource = await GetImageSourceAsync(category.ImageName);
+
+                    currentCategory = currentCategory.ParentCategory;
+                }
+                while (currentCategory != null);
+
+                // add image urls to children categories
+                await WalkCategoryTree(category);
+            }
+        }
+
+        private async Task LoadItemImagesAsync(params Item[] items)
+        {
+            foreach (var item in items)
+            {
+                foreach (var image in item!.Images)
+                {
+                    image.ImageSource = await GetImageSourceAsync(image.ImageName);
+
+                    foreach (var review in item.Reviews)
+                    {
+                        review.User!.ImageSource = await GetImageSourceAsync(review.User.ImageName);
+                    }
+                }
+            }
+        }
+
+        private async Task LoadCartItemImagesAsync(params Cart[] carts)
+        {
+            foreach (var cart in carts)
+            {
+                foreach (var image in cart.CartItems.SelectMany(cartItem => cartItem.Item!.Images))
+                {
+                    image.ImageSource = await GetImageSourceAsync(image.ImageName);
+                }
+            }
+        }
+
+        private async Task LoadWishlistItemImagesAsync(params WishlistItem[] wishlist)
+        {
+            foreach (var wishlistItem in wishlist)
+            {
+                foreach (var image in wishlistItem.Item!.Images)
+                {
+                    image.ImageSource = await GetImageSourceAsync(image.ImageName);
+                }
+            }
+        }
+
+
+        // recursive function to iterate through children categories and add image sources
+        private async Task WalkCategoryTree(Category category)
+        {
+            if (category.ChildCategories is null)
+            {
+                return;
+            }
+
+            foreach (var child in category.ChildCategories)
+            {
+                child.ImageSource = await GetImageSourceAsync(child.ImageName);
+
+                foreach (var image in child.Items.SelectMany(item => item.Images))
+                {
+                    image.ImageSource = await GetImageSourceAsync(image.ImageName);
+                }
+
+                await WalkCategoryTree(child);
+            }
         }
     }
 }

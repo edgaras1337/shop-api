@@ -6,11 +6,9 @@ namespace api.Services
 {
     public interface IUserService
     {
-        Task<GetUserByIdResponse?> GetByIdAsync(int id);
-        //Task<User?> GetByEmailAsync(string email);
         Task<GetCurrentUserResponse?> GetCurrentUserAsync();
-        Task<List<GetAllUsersResponse>> GetAllUsersAsync();
-        Task<List<FindUserResponse>> FindUserAsync(string searchKey);
+        Task<GetUserByIdResponse?> GetByIdAsync(int id);
+        Task<List<GetAllUsersResponse>> GetUsersAsync();
         Task<LoginResponse?> AuthenticateAsync(LoginRequest dto);
         Task LogoutAsync();
         Task<RegisterResponse> CreateUserAsync(RegisterRequest dto);

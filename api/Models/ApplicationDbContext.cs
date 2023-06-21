@@ -17,8 +17,10 @@ namespace api.Models
 
         public DbSet<Category> Categories => Set<Category>();
         public DbSet<Item> Items => Set<Item>();
+        public DbSet<ItemPrice> ItemPrices => Set<ItemPrice>();
         public DbSet<ItemImage> ItemImages => Set<ItemImage>();
-        public DbSet<Comment> Comments => Set<Comment>();
+        public DbSet<ItemReview> ItemReviews => Set<ItemReview>();
+        public DbSet<ItemSpec> ItemSpecs => Set<ItemSpec>();
         public DbSet<Cart> Carts => Set<Cart>();
         public DbSet<CartItem> CartItems => Set<CartItem>();
         public DbSet<WishlistItem> WishlistItems => Set<WishlistItem>();
@@ -29,7 +31,12 @@ namespace api.Models
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+            ModifyEntities(modelBuilder);
+            ManageAutoIncludes(modelBuilder);
+        }
 
+        private static void ModifyEntities(ModelBuilder modelBuilder)
+        {
             modelBuilder.Entity<ApplicationUser>(e =>
             {
                 e.HasMany(e => e.UserRoles)
@@ -56,8 +63,6 @@ namespace api.Models
                     .HasForeignKey(e => e.UserId)
                     .IsRequired()
                     .OnDelete(DeleteBehavior.SetNull);
-
-
             });
 
             modelBuilder.Entity<ApplicationRole>(e =>
@@ -69,9 +74,9 @@ namespace api.Models
             });
 
             modelBuilder.Entity<Category>(e => {
-                e.HasMany(e => e.Children)
-                .WithOne(e => e.Parent)
-                .HasForeignKey(e => e.ParentCategoryId);
+                e.HasMany(e => e.ChildCategories)
+                    .WithOne(e => e.ParentCategory)
+                    .HasForeignKey(e => e.ParentCategoryId);
 
                 e.HasIndex(e => e.Name)
                     .IsUnique();
@@ -81,11 +86,20 @@ namespace api.Models
                 .Property(e => e.UserId)
                 .IsRequired(false);
 
-            modelBuilder.Entity<Item>()
-                .HasMany(e => e.PurchaseItems)
-                .WithOne(e => e.Item)
-                .OnDelete(DeleteBehavior.SetNull);
+            modelBuilder.Entity<Item>(e =>
+            {
+                e.HasMany(e => e.PurchaseItems)
+                    .WithOne(e => e.Item)
+                    .OnDelete(DeleteBehavior.SetNull);
+                
+                e.HasMany(e => e.ItemPrices)
+                    .WithOne(e => e.Item)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+        }
 
+        private static void ManageAutoIncludes(ModelBuilder modelBuilder)
+        {
             modelBuilder.Entity<ApplicationUser>()
                 .Navigation(e => e.UserRoles)
                 .AutoInclude();
@@ -98,7 +112,7 @@ namespace api.Models
                 .Navigation(e => e.Images)
                 .AutoInclude();
 
-            modelBuilder.Entity<Comment>()
+            modelBuilder.Entity<ItemReview>()
                 .Navigation(e => e.User)
                 .AutoInclude();
 
@@ -113,14 +127,6 @@ namespace api.Models
             modelBuilder.Entity<CartItem>()
                 .Navigation(e => e.Item)
                 .AutoInclude();
-
-            //modelBuilder.Entity<Purchase>()
-            //    .Navigation(e => e.PurchaseItems)
-            //    .AutoInclude();
-
-            //modelBuilder.Entity<Purchase>()
-            //    .Navigation(e => e.DeliveryAddress)
-            //    .AutoInclude();
         }
     }
 }

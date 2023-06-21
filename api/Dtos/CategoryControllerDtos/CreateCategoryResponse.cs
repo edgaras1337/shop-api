@@ -12,18 +12,18 @@ namespace api.Dtos.CategoryControllerDtos
         public string ImageName { get; set; } = string.Empty;
         public string ImageSource { get; set; } = string.Empty;
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public CreateCategoryResponse_ParentDto? Parent { get; set; }
-    }
+        public ParentDto? Parent { get; set; }
 
-    public class CreateCategoryResponse_ParentDto
-    {
-        public int Id { get; set; }
-        public string Name { get; set; } = string.Empty;
-        public string ImageName { get; set; } = string.Empty;
-        public string ImageSource { get; set; } = string.Empty;
-        public DateTimeOffset CreatedDate { get; set; }
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public CreateCategoryResponse_ParentDto? Parent { get; set; }
+        public class ParentDto
+        {
+            public int Id { get; set; }
+            public string Name { get; set; } = string.Empty;
+            public string ImageName { get; set; } = string.Empty;
+            public string ImageSource { get; set; } = string.Empty;
+            public DateTimeOffset CreatedDate { get; set; }
+            [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+            public ParentDto? Parent { get; set; }
+        }
     }
 
     public class CreateCategoryResponseProfiles : Profile
@@ -31,7 +31,7 @@ namespace api.Dtos.CategoryControllerDtos
         public CreateCategoryResponseProfiles()
         {
             CreateMap<Category, CreateCategoryResponse>();
-            CreateMap<Category, CreateCategoryResponse_ParentDto>();
+            CreateMap<Category, CreateCategoryResponse.ParentDto>();
         }
     }
 }

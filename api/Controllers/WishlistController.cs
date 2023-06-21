@@ -18,15 +18,14 @@ namespace api.Controllers
             _wishlistItemService = wishlistItemService;
         }
 
-        [HttpPost("add/{itemId}")]
+        [HttpPost("add/{itemId:int}")]
         [Authorize]
         public async Task<ActionResult<List<AddWishlistItemResponse>>> AddToWishlist(int itemId)
         {
             try
             {
                 var wishlistItems = await _wishlistItemService.AddToWishlistAsync(itemId);
-
-                return Ok(wishlistItems ?? new List<AddWishlistItemResponse>());
+                return Ok(wishlistItems);
             }
             catch (UnauthorizedException)
             {
@@ -42,15 +41,14 @@ namespace api.Controllers
             }
         }
 
-        [HttpDelete("remove/{itemId}")]
+        [HttpDelete("remove/{itemId:int}")]
         [Authorize]
         public async Task<ActionResult<List<RemoveWishlistItemResponse>>> RemoveWishlistItem(int itemId)
         {
             try
             {
                 var wishlistItems = await _wishlistItemService.RemoveWishlistItemAsync(itemId);
-
-                return Ok(wishlistItems ?? new List<RemoveWishlistItemResponse>());
+                return Ok(wishlistItems);
             }
             catch (UnauthorizedException)
             {
@@ -69,7 +67,6 @@ namespace api.Controllers
             try
             {
                 var wishlistItems = await _wishlistItemService.GetCurrentUserWishlistAsync();
-
                 return Ok(wishlistItems);
             }
             catch (UnauthorizedException)

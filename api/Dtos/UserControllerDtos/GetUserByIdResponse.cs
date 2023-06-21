@@ -11,18 +11,18 @@ namespace api.Dtos.UserControllerDtos
         public string Email { get; set; } = string.Empty;
         public DateTime DateOfBirth { get; set; }
         public string ImageSource { get; set; } = string.Empty;
-        public List<GetUserByIdResponse_UserRoleDto> UserRoles { get; set; } = new();
-    }
+        public List<UserRoleDto> UserRoles { get; set; } = new();
 
-    public class GetUserByIdResponse_UserRoleDto
-    {
-        public GetUserByIdResponse_RoleDto? Role { get; set; }
-    }
+        public class UserRoleDto
+        {
+            public RoleDto? Role { get; set; }
 
-    public class GetUserByIdResponse_RoleDto
-    {
-        public int Id { get; set; }
-        public string Name { get; set; } = string.Empty;
+            public class RoleDto
+            {
+                public int Id { get; set; }
+                public string Name { get; set; } = string.Empty;
+            }
+        }
     }
 
     public class GetUserByIdResponseProfiles : Profile
@@ -30,8 +30,8 @@ namespace api.Dtos.UserControllerDtos
         public GetUserByIdResponseProfiles()
         {
             CreateMap<ApplicationUser, GetUserByIdResponse>();
-            CreateMap<ApplicationUserRole, GetUserByIdResponse_UserRoleDto>();
-            CreateMap<ApplicationRole, GetUserByIdResponse_RoleDto>();
+            CreateMap<ApplicationUserRole, GetUserByIdResponse.UserRoleDto>();
+            CreateMap<ApplicationRole, GetUserByIdResponse.UserRoleDto.RoleDto>();
         }
     }
 }

@@ -1,16 +1,8 @@
 ﻿using api.CustomExceptions;
-using api.Data;
-using api.Dtos;
 using api.Dtos.AuthControllerDtos;
-using api.Helpers;
-using api.Models;
 using api.Services;
-using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System.Data;
-using System.Security.Claims;
 
 namespace api.Controllers
 {
@@ -19,7 +11,6 @@ namespace api.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IUserService _userService;
-
         public AuthController(IUserService userService)
         {
             _userService  = userService;
@@ -30,14 +21,12 @@ namespace api.Controllers
         {
             try
             {
-                // create user account and return response dto
                 var response = await _userService.CreateUserAsync(dto);
-
                 return CreatedAtAction(nameof(RegisterAsync), response);
             }
             catch (DuplicateDataException)
             {
-                // email was already in use
+                // Email is already in use.
                 return Conflict();
             }
             catch (InvalidPasswordException)
@@ -50,7 +39,7 @@ namespace api.Controllers
             }
             catch (ObjectNotFoundException)
             {
-                // role wasnt found
+                // Role wasn't found.
                 return NotFound();
             }
         }
@@ -58,9 +47,8 @@ namespace api.Controllers
         [HttpPost("login")]
         public async Task<ActionResult<LoginResponse>> LoginAsync(LoginRequest dto)
         {
-            // authenticate user and return response dto
             var user = await _userService.AuthenticateAsync(dto);
-            if(user is null)
+            if(user == null)
             {
                 return Unauthorized();
             }
@@ -73,7 +61,6 @@ namespace api.Controllers
         public async Task<ActionResult> LogoutAsync()
         {
             await _userService.LogoutAsync();
-
             return NoContent();
         }
 
@@ -82,7 +69,6 @@ namespace api.Controllers
         public async Task<ActionResult<GetCurrentUserResponse>> GetCurrentUserAsync()
         { 
             var user = await _userService.GetCurrentUserAsync();
-
             if (user == null)
             {
                 return Unauthorized();

@@ -9,54 +9,69 @@ namespace api.Dtos.ItemControllerDtos
         public string Name { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public int Quantity { get; set; }
-        public decimal Price { get; set; }
-        public DateTimeOffset CreatedDate { get; set; }
-        public DateTimeOffset ModifiedDate { get; set; }
-        public GetItemResponse_CategoryDto? Category { get; set; }
-        public List<GetItemResponse_ItemImageDto>? Images { get; set; }
-        public List<GetItemResponse_CommentDto>? Comments { get; set; }
-    }
 
-    public class GetItemResponse_CategoryDto
-    {
-        public int Id { get; set; }
-        public string Name { get; set; } = string.Empty;
-    }
+        public List<ItemReviewDto>? Comments { get; set; }
+        public ItemPriceDto? Price { get; set; }
+        public CategoryDto? Category { get; set; }
+        public List<ItemImageDto>? Images { get; set; }
+        public List<ItemSpecDto>? ItemSpecs { get; set; }
 
-    public class GetItemResponse_ItemImageDto
-    {
-        public int Id { get; set; }
-        public string ImageName { get; set; } = string.Empty;
-        public string ImageSource { get; set; } = string.Empty;
-    }
+        public class CategoryDto
+        {
+            public int Id { get; set; }
+            public string Name { get; set; } = string.Empty;
+        }
 
-    public class GetItemResponse_CommentDto
-    {
-        public int Id { get; set; }
-        public string CommentText { get; set; } = string.Empty;
-        public DateTimeOffset ModifiedDate { get; set; }
-        public GetItemResponse_UserDto? User { get; set; }
-    }
+        public class ItemImageDto
+        {
+            public int Id { get; set; }
+            public string ImageName { get; set; } = string.Empty;
+            public string ImageSource { get; set; } = string.Empty;
+        }
 
-    public class GetItemResponse_UserDto
-    {
-        public string Id { get; set; } = string.Empty;
-        public string Name { get; set; } = string.Empty;
-        public string Surname { get; set; } = string.Empty;
-        public string Email { get; set; } = string.Empty;
-        public string ImageSource { get; set; } = string.Empty;
-        public List<GetItemResponse_UserRoleDto> UserRoles { get; set; } = new();
-    }
+        public class ItemPriceDto
+        {
+            public int Id { get; set; }
+            public decimal Price { get; set; }
+            public bool IsOnSale { get; set; }
+            public string Currency { get; set; } = string.Empty;
+        }
 
-    public class GetItemResponse_UserRoleDto
-    {
-        public GetItemResponse_RoleDto? Role { get; set; }
-    }
+        public class ItemSpecDto
+        {
+            public int Id { get; set; }
+            public string SpecName { get; set; } = string.Empty;
+            public string SpecValue { get; set; } = string.Empty;
+        }
 
-    public class GetItemResponse_RoleDto
-    {
-        public string Id { get; set; } = string.Empty;
-        public string Name { get; set; } = string.Empty;
+        public class ItemReviewDto
+        {
+            public int Id { get; set; }
+            public string CommentText { get; set; } = string.Empty;
+            public DateTimeOffset ModifiedDate { get; set; }
+            public UserDto? User { get; set; }
+
+            public class UserDto
+            {
+                public string Id { get; set; } = string.Empty;
+                public string Name { get; set; } = string.Empty;
+                public string Surname { get; set; } = string.Empty;
+                public string Email { get; set; } = string.Empty;
+                public string ImageSource { get; set; } = string.Empty;
+                public List<UserRoleDto> UserRoles { get; set; } = new();
+
+                public class UserRoleDto
+                {
+                    public RoleDto? Role { get; set; }
+
+                    public class RoleDto
+                    {
+                        public string Id { get; set; } = string.Empty;
+                        public string Name { get; set; } = string.Empty;
+                    }
+                }
+            }
+        }
     }
 
     public class GetItemResponseProfiles : Profile
@@ -64,12 +79,14 @@ namespace api.Dtos.ItemControllerDtos
         public GetItemResponseProfiles()
         {
             CreateMap<Item, GetItemResponse>();
-            CreateMap<Category, GetItemResponse_CategoryDto>();
-            CreateMap<ItemImage, GetItemResponse_ItemImageDto>();
-            CreateMap<Comment, GetItemResponse_CommentDto>();
-            CreateMap<ApplicationUser, GetItemResponse_UserDto>();
-            CreateMap<ApplicationUserRole, GetItemResponse_UserRoleDto>();
-            CreateMap<ApplicationRole, GetItemResponse_RoleDto>();
+            CreateMap<Category, GetItemResponse.CategoryDto>();
+            CreateMap<ItemImage, GetItemResponse.ItemImageDto>();
+            CreateMap<ItemPrice, GetItemResponse.ItemPriceDto>();
+            CreateMap<ItemSpec, GetItemResponse.ItemSpecDto>();
+            CreateMap<ItemReview, GetItemResponse.ItemReviewDto>();
+            CreateMap<ApplicationUser, GetItemResponse.ItemReviewDto.UserDto>();
+            CreateMap<ApplicationUserRole, GetItemResponse.ItemReviewDto.UserDto.UserRoleDto>();
+            CreateMap<ApplicationRole, GetItemResponse.ItemReviewDto.UserDto.UserRoleDto.RoleDto>();
         }
     }
 }

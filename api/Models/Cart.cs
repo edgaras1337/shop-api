@@ -13,6 +13,7 @@ namespace api.Models
         public decimal TotalPrice { get; set; }
         public DateTimeOffset ModifiedDate { get; set; }
 
+        public virtual IEnumerable<Price> Prices { get; set; } = new List<Price>();
         public virtual List<CartItem> CartItems { get; set; } = new List<CartItem>();
         public virtual ApplicationUser? User { get; set; }
 
@@ -21,6 +22,11 @@ namespace api.Models
             UserId = userId;
             ModifiedDate = DateTimeOffset.UtcNow;
             TotalPrice = 0;
+        }
+
+        public Cart()
+        {
+
         }
     }
 }

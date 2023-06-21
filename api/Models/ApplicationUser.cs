@@ -19,7 +19,7 @@ namespace api.Models
         public virtual List<ApplicationUserRole> UserRoles { get; set; } = new();
         public virtual Cart? Cart { get; set; }
         public virtual List<WishlistItem> WishlistItems { get; set; } = new();
-        public virtual List<Comment> Comments { get; set; } = new();
+        public virtual List<ItemReview> Comments { get; set; } = new();
         public virtual List<Purchase> Purchases { get; set; } = new();
     }
 }

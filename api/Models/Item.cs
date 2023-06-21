@@ -11,16 +11,17 @@ namespace api.Models
         public string Name { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public int? Quantity { get; set; }
-        [Column(TypeName = "decimal(10, 2)")]
-        public decimal? Price { get; set; }
         public DateTimeOffset CreatedDate { get; set; }
         public DateTimeOffset ModifiedDate { get; set; }
+        public bool IsFeatured { get; set; }
         [ForeignKey("CategoryId")]
         public int? CategoryId { get; set; }
 
         public virtual Category? Category { get; set; }
-        public virtual List<ItemImage> Images { get; set; } = new List<ItemImage>();
-        public virtual List<Comment> Comments { get; set; } = new List<Comment>();
+        public virtual List<ItemImage> Images { get; set; } = new();
+        public virtual List<ItemReview> Reviews { get; set; } = new();
         public virtual List<PurchaseItem> PurchaseItems { get; set; } = new();
+        public virtual List<ItemPrice> ItemPrices { get; set; } = new();
+        public virtual List<ItemSpec> ItemSpecs { get; set; } = new();
     }
 }

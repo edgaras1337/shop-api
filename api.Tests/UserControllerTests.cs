@@ -51,7 +51,7 @@ namespace api.Tests
         public async Task GetAllUsers()
         {
             // Arrange
-            A.CallTo(() => _userService.GetAllUsersAsync())
+            A.CallTo(() => _userService.GetUsersAsync())
                 .Returns(Task.FromResult(A.Fake<List<GetAllUsersResponse>>()));
             var controller = new UserController(_userService);
 

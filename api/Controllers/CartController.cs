@@ -12,20 +12,18 @@ namespace api.Controllers
     public class CartController : ControllerBase
     {
         private readonly ICartService _cartService;
-
         public CartController(ICartService cartService)
         {
             _cartService = cartService;
         }
 
-        [HttpPost("add/{itemId}")]
+        [HttpPost("add/{itemId:int}")]
         [Authorize]
         public async Task<ActionResult<AddToCartResponse>> AddToCart(int itemId)
         {
             try
             {
                 var response = await _cartService.AddToCartAsync(itemId);
-
                 return Ok(response);
             }
             catch (UnauthorizedException)
@@ -38,14 +36,13 @@ namespace api.Controllers
             }
         }
 
-        [HttpDelete("remove/{itemId}")]
+        [HttpDelete("remove/{itemId:int}")]
         [Authorize]
         public async Task<ActionResult<RemoveFromCartResponse>> RemoveFromCart(int itemId)
         {
             try
             {
                 var response = await _cartService.RemoveFromCartAsync(itemId);
-
                 return Ok(response);
             }
             catch (UnauthorizedException)
@@ -65,7 +62,6 @@ namespace api.Controllers
             try
             {
                 var response = await _cartService.GetCurrentUserCart();
-
                 return Ok(response);
             }
             catch (UnauthorizedException)

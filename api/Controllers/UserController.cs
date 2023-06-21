@@ -54,7 +54,7 @@ namespace api.Controllers
         [Authorize(Roles = "Administrator")]
         public async Task<ActionResult<List<GetAllUsersResponse>>> GetAllUsers()
         {
-            var users = await _userService.GetAllUsersAsync();
+            var users = await _userService.GetUsersAsync();
 
             return Ok(users);
         }
@@ -71,20 +71,6 @@ namespace api.Controllers
             }
 
             return Ok(user);
-        }
-
-        [HttpGet("find/{searchKey}")]
-        [Authorize(Roles = "Administrator")]
-        public async Task<ActionResult<FindUserResponse>> FindUser(string searchKey)
-        {
-            var users = await _userService.FindUserAsync(searchKey);
-
-            if (users is null || users.Count == 0)
-            {
-                return NotFound();
-            }
-
-            return Ok(users);
         }
 
         [HttpDelete("deactivate")]

@@ -1,17 +1,23 @@
-using api.Data;
 using api.Helpers;
 using api.Models;
+using api.Repo;
 using api.Services;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.FileProviders;
-using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using System.Net.Mime;
-using System.Text;
+
+/* TODO:
+ * Sutvarkyti repository
+ * Sutvarkyti servisus
+ * Sutvarkyti DTOs
+ * Prideti lokalizacija
+ * Reikia atskiro objekto produktu kainoms
+ */
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,7 +32,7 @@ services.AddMvc(options =>
 
 services.AddHealthChecks()
     .AddSqlServer(
-        builder.Configuration.GetConnectionString("Default"),
+        builder.Configuration.GetConnectionString("Local"),
         name: "sqlserver",
         tags: new string[] { "ready" },
         timeout: TimeSpan.FromSeconds(3));
@@ -39,10 +45,13 @@ services.AddControllers()
             .ReferenceLoopHandling = ReferenceLoopHandling.Ignore);
 
 services.AddEndpointsApiExplorer();
-services.AddSwaggerGen();
+services.AddSwaggerGen(options =>
+{
+    options.CustomSchemaIds(type => type.ToString());
+});
 
 services.AddDbContext<ApplicationDbContext>(options => options
-    .UseLazyLoadingProxies()
+    //.UseLazyLoadingProxies()
     .UseSqlServer(builder.Configuration.GetConnectionString("Local")));
 
 services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
@@ -82,26 +91,15 @@ services.AddAuthentication();/* (options =>
 });*/
 
 services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-/*services.AddScoped<IUserRepository, UserRepository>();
-services.AddScoped<IUserRoleRepository, UserRoleRepository>();
-services.AddScoped<IRoleRepository, RoleRepository>();
-services.AddScoped<IJwtService, JwtService>();*/
+//services.AddScoped<IJwtService, JwtService>();
 services.AddScoped<IImageService, ImageService>();
 services.AddScoped<IUserService, UserService>();
-services.AddScoped<IItemRepository, ItemRepository>();
 services.AddScoped<IItemService, ItemService>();
-services.AddScoped<IItemImageRepository, ItemImageRepository>();
-services.AddScoped<ICategoryRepository, CategoryRepository>();
 services.AddScoped<ICategoryService, CategoryService>();
-services.AddScoped<ICartRepository, CartRepository>();
-services.AddScoped<ICartItemRepository, CartItemRepository>();
 services.AddScoped<ICartService, CartService>();
-services.AddScoped<IWishlistItemRepository, WishlistItemRepository>();
 services.AddScoped<IWishlistItemService, WishlistItemService>();
-services.AddScoped<ICommentRepository, CommentRepository>();
-services.AddScoped<ICommentService, CommentService>();
-services.AddScoped<IPurchaseService, PurchaseService>();
-services.AddScoped<IPurchaseRepository, PurchaseRepository>();
+services.AddScoped<IReviewService, ReviewService>();
+services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 //services.AddScoped<ApplicationDbContext>();
 
@@ -113,7 +111,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
 
 app.UseCors(options => options
     .WithOrigins(new[] { "http://localhost:3000", "https://localhost:8000", "http://localhost:4200", })

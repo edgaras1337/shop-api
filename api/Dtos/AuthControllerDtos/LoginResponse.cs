@@ -12,70 +12,76 @@ namespace api.Dtos.AuthControllerDtos
         public string Email { get; set; } = string.Empty;
         public DateTime DateOfBirth { get; set; }
         public string ImageSource { get; set; } = string.Empty;
-        public List<LoginResponse_UserRoleDto> UserRoles { get; set; } = new();
-        public LoginResponse_Cart? Cart { get; set; }
-        public List<LoginResponse_WishlistItemsDto>  WishlistItems { get; set; } = new();
-    }
+        public List<UserRoleDto> UserRoles { get; set; } = new();
+        public CartDto? Cart { get; set; }
+        public List<WishlistItemsDto> WishlistItems { get; set; } = new();
 
-    public class LoginResponse_UserRoleDto
-    {
-        public LoginResponse_RoleDto? Role { get; set; }
-    }
+        public class UserRoleDto
+        {
+            public RoleDto? Role { get; set; }
 
-    public class LoginResponse_RoleDto
-    {
-        public int Id { get; set; }
-        public string Name { get; set; } = string.Empty;
-    }
+            public class RoleDto
+            {
+                public int Id { get; set; }
+                public string Name { get; set; } = string.Empty;
+            }
+        }
 
-    public class LoginResponse_Cart
-    {
-        public int UserId { get; set; }
-        public decimal TotalPrice { get; set; }
-        public DateTimeOffset ModifiedDate { get; set; }
+        public class CartDto
+        {
+            public int UserId { get; set; }
+            public decimal TotalPrice { get; set; }
+            public DateTimeOffset ModifiedDate { get; set; }
 
-        public List<LoginResponse_CartItemDto> CartItems { get; set; } = new();
-    }
+            public List<CartItemDto> CartItems { get; set; } = new();
 
-    public class LoginResponse_CartItemDto
-    {
-        public int Id { get; set; }
-        public int Quantity { get; set; }
+            public class CartItemDto
+            {
+                public int Id { get; set; }
+                public int Quantity { get; set; }
 
-        public LoginResponse_ItemDto? Item { get; set; }
-    }
-    public class LoginResponse_WishlistItemsDto
-    {
-        public int Id { get; set; }
-        public int UserId { get; set; }
-        public LoginResponse_ItemDto? Item { get; set; }
-    }
+                public ItemDto? Item { get; set; }
+            }
+        }
 
+        public class WishlistItemsDto
+        {
+            public int Id { get; set; }
+            public ItemDto? Item { get; set; }
+        }
 
-    public class LoginResponse_ItemDto
-    {
-        public int Id { get; set; }
-        public string Name { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
-        public int Quantity { get; set; }
-        public decimal Price { get; set; }
-        public DateTimeOffset CreatedDate { get; set; }
-        public DateTimeOffset ModifiedDate { get; set; }
-        public LoginResponse_CategoryDto? Category { get; set; }
-        public List<LoginResponse_ItemImageDto> Images { get; set; } = new();
-    }
+        public class ItemDto
+        {
+            public int Id { get; set; }
+            public string Name { get; set; } = string.Empty;
+            public string Description { get; set; } = string.Empty;
+            public int Quantity { get; set; }
 
-    public class LoginResponse_CategoryDto
-    {
-        public int Id { get; set; }
-        public string Name { get; set; } = string.Empty;
-    }
+            public ItemPriceDto? Price { get; set; }
+            public CategoryDto? Category { get; set; }
+            public List<ItemImageDto>? Images { get; set; }
 
-    public class LoginResponse_ItemImageDto
-    {
-        public int Id { get; set; }
-        public string ImageName { get; set; } = string.Empty;
-        public string ImageSource { get; set; } = string.Empty;
+            public class CategoryDto
+            {
+                public int Id { get; set; }
+                public string Name { get; set; } = string.Empty;
+            }
+
+            public class ItemImageDto
+            {
+                public int Id { get; set; }
+                public string ImageName { get; set; } = string.Empty;
+                public string ImageSource { get; set; } = string.Empty;
+            }
+
+            public class ItemPriceDto
+            {
+                public int Id { get; set; }
+                public decimal Price { get; set; }
+                public bool IsOnSale { get; set; }
+                public string Currency { get; set; } = string.Empty;
+            }
+        }
     }
 
     public class LoginResponseProfiles : Profile
@@ -83,14 +89,15 @@ namespace api.Dtos.AuthControllerDtos
         public LoginResponseProfiles()
         {
             CreateMap<ApplicationUser, LoginResponse>();
-            CreateMap<ApplicationUserRole, LoginResponse_UserRoleDto>();
-            CreateMap<ApplicationRole, LoginResponse_RoleDto>();
-            CreateMap<Cart, LoginResponse_Cart>();
-            CreateMap<CartItem, LoginResponse_CartItemDto>();
-            CreateMap<WishlistItem, LoginResponse_WishlistItemsDto>();
-            CreateMap<Item, LoginResponse_ItemDto>();
-            CreateMap<Category, LoginResponse_CategoryDto>();
-            CreateMap<ItemImage, LoginResponse_ItemImageDto>();
+            CreateMap<ApplicationUserRole, LoginResponse.UserRoleDto>();
+            CreateMap<ApplicationRole, LoginResponse.UserRoleDto.RoleDto>();
+            CreateMap<Cart, LoginResponse.CartDto>();
+            CreateMap<CartItem, LoginResponse.CartDto.CartItemDto>();
+            CreateMap<WishlistItem, LoginResponse.WishlistItemsDto>();
+            CreateMap<Item, LoginResponse.ItemDto>();
+            CreateMap<ItemPrice, LoginResponse.ItemDto.ItemPriceDto>();
+            CreateMap<Category, LoginResponse.ItemDto.CategoryDto>();
+            CreateMap<ItemImage, LoginResponse.ItemDto.ItemImageDto>();
         }
     }
 }

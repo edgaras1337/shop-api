@@ -1,7 +1,4 @@
-﻿using api.Controllers;
-using api.CustomExceptions;
-using api.Data;
-using api.Dtos;
+﻿using api.CustomExceptions;
 using api.Dtos.AuthControllerDtos;
 using api.Dtos.UserControllerDtos;
 using api.Helpers;
@@ -10,10 +7,7 @@ using api.UserControllerDtos;
 using AutoMapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
-using System.Collections.Generic;
 using System.Data;
-using System.Security.Claims;
 
 namespace api.Services
 {
@@ -47,80 +41,36 @@ namespace api.Services
             _roleManager = roleManager;
         }
 
-        public async Task<GetUserByIdResponse?> GetByIdAsync(int id)
-        {
-            var user = await _userManager.FindByIdAsync(id.ToString());
-
-            if (user is null)
-            {
-                return null;
-            }
-
-            user = await user.WithImagesAsync(_imageService);
-
-            var dto = _mapper.Map<GetUserByIdResponse>(user);
-
-            return dto;
-        }
-
         public async Task<GetCurrentUserResponse?> GetCurrentUserAsync()
         {
             // get current user
             var user = await GetCurrentUserModelAsync();
-
             if (user is null)
             {
                 return null;
             }
 
-            user = await user.WithImagesAsync(_imageService);
-
-            var dto = _mapper.Map<GetCurrentUserResponse>(user);
-
-            return dto;
+            await _imageService.LoadImagesAsync(user);
+            return _mapper.Map<GetCurrentUserResponse>(user);
         }
 
-        public async Task<List<GetAllUsersResponse>> GetAllUsersAsync()
+        public async Task<GetUserByIdResponse?> GetByIdAsync(int id)
         {
-            var dtoList = new List<GetAllUsersResponse>();
-
-            var users = await _userManager.Users
-                .ToListAsync();
-
-            users.ForEach(async user =>
+            var user = await _userManager.FindByIdAsync(id.ToString());
+            if (user is null)
             {
-                user = await user.WithImagesAsync(_imageService);
+                return null;
+            }
 
-                var dto = _mapper.Map<GetAllUsersResponse>(user);
-
-                dtoList.Add(dto);
-            });
-
-            return dtoList;
+            await _imageService.LoadImagesAsync(user);
+            return _mapper.Map<GetUserByIdResponse>(user);
         }
 
-        public async Task<List<FindUserResponse>> FindUserAsync(string searchKey)
+        public async Task<List<GetAllUsersResponse>> GetUsersAsync()
         {
-            searchKey = searchKey.Trim();
-
-            var users = await _userManager.Users
-                .Where(e => e.Name.Contains(searchKey) ||
-                    e.Surname.Contains(searchKey) ||
-                    e.Email.Contains(searchKey))
-                .ToListAsync();
-
-            var resDto = new List<FindUserResponse>();
-
-            users.ForEach(async user =>
-            {
-                user = await user.WithImagesAsync(_imageService);
-
-                var resDtoItem = _mapper.Map<FindUserResponse>(user);
-
-                resDto.Add(resDtoItem);
-            });
-
-            return resDto;
+            var users = await _userManager.Users.ToListAsync();
+            await _imageService.LoadImagesAsync(users);
+            return _mapper.Map<List<GetAllUsersResponse>>(users);
         }
 
         public async Task<LoginResponse?> AuthenticateAsync(LoginRequest dto)
@@ -143,11 +93,8 @@ namespace api.Services
                 return null;
             }
 
-            user = await user.WithImagesAsync(_imageService);
-
-            var resDto = _mapper.Map<LoginResponse>(user);
-            
-            return resDto;
+            await _imageService.LoadImagesAsync(user);
+            return _mapper.Map<LoginResponse>(user);
         }
 
         public async Task LogoutAsync()
@@ -185,10 +132,8 @@ namespace api.Services
             }
 
             user.Cart = new Cart(user.Id);
-
             await _userManager.AddToRoleAsync(user, "Customer");
-
-            user = await user.WithImagesAsync(_imageService);
+            await _imageService.LoadImagesAsync(user);
             
             if (dto.RoleId != null)
             {
@@ -196,9 +141,7 @@ namespace api.Services
                 await _userManager.AddToRoleAsync(user, role.Name);
             }
 
-            var resDto = _mapper.Map<RegisterResponse>(user);
-
-            return resDto;
+            return _mapper.Map<RegisterResponse>(user);
         }
 
         public async Task<UpdateUserResponse> UpdateCurrentUserAsync(UpdateUserRequest dto)
@@ -266,7 +209,7 @@ namespace api.Services
 
             await _userManager.UpdateAsync(user);
 
-            user = await user.WithImagesAsync(_imageService);
+            await _imageService.LoadImagesAsync(user);
 
             var resDto = _mapper.Map<UpdateUserResponse>(user);
 
@@ -304,7 +247,6 @@ namespace api.Services
         private async Task<ApplicationUser?> GetCurrentUserModelAsync()
         {
             var name = _contextAccessor?.HttpContext?.User?.Identity?.Name;
-
             if (name is null)
             {
                 return null;

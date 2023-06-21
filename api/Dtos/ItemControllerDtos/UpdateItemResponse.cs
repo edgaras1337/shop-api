@@ -12,30 +12,30 @@ namespace api.Dtos.ItemControllerDtos
         public decimal Price { get; set; }
         public DateTimeOffset CreatedDate { get; set; }
         public DateTimeOffset ModifiedDate { get; set; }
-        public UpdateItemResponse_CategoryDto? Category { get; set; }
-        public List<UpdateItemResponse_ItemImageDto> Images { get; set; } = new();
+        public CategoryDto? Category { get; set; }
+        public List<ItemImageDto> Images { get; set; } = new();
 
-        public class UpdateItemResponse_CategoryDto
+        public class CategoryDto
         {
             public int Id { get; set; }
             public string Name { get; set; } = string.Empty;
         }
 
-        public class UpdateItemResponse_ItemImageDto
+        public class ItemImageDto
         {
             public int Id { get; set; }
             public string ImageName { get; set; } = string.Empty;
             public string ImageSource { get; set; } = string.Empty;
         }
-
-        public class GetItemResponseProfiles : Profile
+    }
+    
+    public class UpdateItemResponseProfiles : Profile
+    {
+        public UpdateItemResponseProfiles()
         {
-            public GetItemResponseProfiles()
-            {
-                CreateMap<Item, UpdateItemResponse>();
-                CreateMap<Category, UpdateItemResponse_CategoryDto>();
-                CreateMap<ItemImage, UpdateItemResponse_ItemImageDto>();
-            }
+            CreateMap<Item, UpdateItemResponse>();
+            CreateMap<Category, UpdateItemResponse.CategoryDto>();
+            CreateMap<ItemImage, UpdateItemResponse.ItemImageDto>();
         }
     }
 }
